@@ -24,5 +24,4 @@ def get_classification_data(file_path):
         label = is_enemy * 3 + status
         images_data.append((data_index, label))
         data_index += 1
-    print(len(images_data), images_data[:10])
     return images_data

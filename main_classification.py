@@ -1,10 +1,10 @@
 import numpy as np
+from random import shuffle
 import sys
 import tensorflow as tf
 from tensorflow.image import decode_jpeg, resize
 from tensorflow.io import read_file
-from tensorflow.losses import sparse_softmax_cross_entropy
-from tensorflow.nn import softmax
+from tensorflow.nn import softmax, sparse_softmax_cross_entropy_with_logits
 from tensorflow.train import AdamOptimizer
 
 from constants import image_size
@@ -14,6 +14,9 @@ from resnet import ResNet
 tf.enable_eager_execution()
 
 resnet = ResNet()
+random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
+resnet(random_image)
+resnet.save_weights("./weights/resnet")
 
 def get_img(img_path):
     img = read_file(img_path)
@@ -24,23 +27,30 @@ def get_img(img_path):
 
 def train():
     print("Training started")
-    opt = AdamOptimizer(1e-3)
+    opt = AdamOptimizer(1e-6)
     images_data = get_classification_data("data/data_classification_train.json")
-    for (i, label) in images_data:
-        print("{} of {}".format(i, len(images_data)))
-        img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
-        def get_loss():
-            logits = resnet(tf.convert_to_tensor([img]))
-            return sparse_softmax_cross_entropy([label], logits)
-        opt.minimize(get_loss)
-    resnet.save_weights("./weights/resnet")
+    while True: # Until we manually stop it. I dont care about over-fitting for now - I just want to see if any results will come
+        shuffle(images_data)
+        for (i, label) in images_data:
+            img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
+            def get_loss():
+                img_vector = tf.convert_to_tensor([img], dtype=np.float32)
+                logits = resnet(img_vector)
+                entropy = sparse_softmax_cross_entropy_with_logits(labels=[label], logits=logits)
+                entropy = tf.gather(entropy, 0)
+                print("{} {} {}".format(label, logits[0].numpy(), entropy))
+                return entropy
+            opt.minimize(get_loss)
+        resnet.save_weights("./weights/resnet")
+        print("Weights saved")
 
 def evaluate():
     resnet.load_weights("./weights/resnet")
     images_data = get_classification_data("data/data_classification_evaluate.json")
     for (i, label) in images_data:
         img = get_img("./pictures/pictures_classification_evaluate/{}.png".format(i))
-        logits = resnet(tf.convert_to_tensor([img]))
+        img_vector = tf.convert_to_tensor([img], dtype=np.float32)
+        logits = resnet(img_vector)
         print(label, logits.numpy())
 
 training = False
