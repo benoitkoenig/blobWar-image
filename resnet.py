@@ -1,6 +1,8 @@
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Conv2D, Activation, BatchNormalization, Dense, Add, MaxPooling2D, ZeroPadding2D, AveragePooling2D, Flatten, InputLayer
 
+from constants import image_size
+
 nb_class = 6
 
 class Residual(Model):
@@ -44,7 +46,7 @@ class Residual(Model):
 class ResNet(Model):
     def __init__(self):
         super(ResNet, self).__init__()
-        self.input1 = InputLayer((256, 256, 3))
+        self.input1 = InputLayer((image_size, image_size, 3))
         self.bn1 = BatchNormalization()
         self.conv1 = Conv2D(64, (5, 5), padding="same")
         self.bn2 = BatchNormalization()
