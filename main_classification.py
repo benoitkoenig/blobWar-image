@@ -10,13 +10,16 @@ from tensorflow.train import AdamOptimizer
 from constants import image_size
 from preprocess import get_classification_data
 from resnet import ResNet
+from tracking import save_data
 
 tf.enable_eager_execution()
 
-resnet = ResNet()
-random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
-resnet(random_image)
-resnet.save_weights("./weights/resnet")
+def get_resnet():
+    resnet = ResNet()
+    random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
+    resnet(random_image)
+    resnet.load_weights("./weights/resnet")
+    return resnet
 
 def get_img(img_path):
     img = read_file(img_path)
@@ -26,9 +29,11 @@ def get_img(img_path):
     return img
 
 def train():
-    print("Training started")
+    resnet = get_resnet()
     opt = AdamOptimizer(1e-6)
     images_data = get_classification_data("data/data_classification_train.json")
+    count = 0
+    print("Training started")
     while True: # Until we manually stop it. I dont care about over-fitting for now - I just want to see if any results will come
         shuffle(images_data)
         for (i, label) in images_data:
@@ -38,14 +43,16 @@ def train():
                 logits = resnet(img_vector)
                 entropy = sparse_softmax_cross_entropy_with_logits(labels=[label], logits=logits)
                 entropy = tf.gather(entropy, 0)
-                print("{} {} {}".format(label, logits[0].numpy(), entropy))
+                save_data(label, logits[0].numpy().tolist(), entropy.numpy().tolist())
                 return entropy
             opt.minimize(get_loss)
-        resnet.save_weights("./weights/resnet")
+            count += 1
+            if (count % 1000 == 0):
+                resnet.save_weights("./weights/resnet")
         print("Weights saved")
 
 def evaluate():
-    resnet.load_weights("./weights/resnet")
+    resnet = get_resnet()
     images_data = get_classification_data("data/data_classification_evaluate.json")
     for (i, label) in images_data:
         img = get_img("./pictures/pictures_classification_evaluate/{}.png".format(i))
