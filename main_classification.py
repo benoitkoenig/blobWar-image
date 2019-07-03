@@ -57,7 +57,7 @@ def train():
             count += 1
             if (count % 1000 == 0):
                 resnet.save_weights(resnet_weights_path)
-        print("Weights saved")
+                print("Weights saved")
 
 def evaluate():
     resnet = get_resnet()
