@@ -9,6 +9,7 @@ import tensorflow as tf
 
 tf.enable_eager_execution()
 
+from constants import nb_class
 from tracking import get_dataframes
 
 pd.plotting.register_matplotlib_converters()
@@ -20,7 +21,7 @@ pd.plotting.register_matplotlib_converters()
 def order_by_label(df, key):
     # Return an array containing, for each category, a Series of datetimes
     output = []
-    for label in range(6):
+    for label in range(nb_class):
         label_output = df[df["label"] == label][key].values
         if len(label_output) == 0:
             label_output = []
@@ -54,12 +55,14 @@ plt.figure(figsize=(18, 12))
 plt.subplot(3, 3, 1)
 label_probs = df["label_prob"].values
 plt.plot(label_probs)
+plt.ylim(0., 1.)
 plt.title("Right Prob")
 
 # Prob of label density
 plt.subplot(3, 3, 2)
 plt.violinplot([df_tail["label_prob"], df_pre_tail["label_prob"]])
 plt.xticks([1, 2], ["Tail", "PreTail"])
+plt.ylim(0., 1.)
 plt.title("Right Prob density")
 
 # Prob of label density per label
@@ -67,6 +70,7 @@ plt.subplot(3, 3, 3)
 prob_per_label = order_by_label(df_tail, "label_prob")
 plt.violinplot(prob_per_label)
 plt.xticks([1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5])
+plt.ylim(0., 1.)
 plt.title("Right Prob density per label - Tail")
 
 # Entropy over iterations
@@ -102,6 +106,7 @@ plt.title("Entropy density per label - Tail")
 plt.subplot(3, 3, 7)
 label_probs = df["label_prob"].values
 plt.plot(label_probs, color="green")
+plt.ylim(0., 1.)
 plt.title("Wrong Prob")
 
 # Wrong Prob density
@@ -113,6 +118,7 @@ parts["cmins"].set_color("green")
 parts["cmaxes"].set_color("green")
 parts["cbars"].set_color("green")
 plt.xticks([1, 2], ["Tail", "PreTail"])
+plt.ylim(0., 1.)
 plt.title("Wrong Prob density")
 
 # Wrong Prob density per label
@@ -125,6 +131,7 @@ parts["cmins"].set_color("green")
 parts["cmaxes"].set_color("green")
 parts["cbars"].set_color("green")
 plt.xticks([1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5])
+plt.ylim(0., 1.)
 plt.title("Wrong Prob density per label - Tail")
 
 plt.show()

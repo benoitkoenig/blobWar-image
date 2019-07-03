@@ -4,30 +4,32 @@ import sys
 import tensorflow as tf
 from tensorflow.image import decode_jpeg, resize
 from tensorflow.io import read_file
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, Dropout
 from tensorflow.nn import softmax, sparse_softmax_cross_entropy_with_logits
 from tensorflow.train import AdamOptimizer
 
-from constants import image_size
-from preprocess import get_classification_data
-from resnet import ResNet
-from tracking import save_data
-
 tf.enable_eager_execution()
 
-resnet_weights_path = "./weights/resnet"
+from constants import image_size
+from model import BlobClassifierModel
+from preprocess import get_classification_data
+from tracking import save_data
 
-def get_resnet():
-    resnet = ResNet()
-    random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
-    resnet(random_image)
-    resnet.load_weights(resnet_weights_path)
-    return resnet
+weights_path = "./weights/weights"
 
-def reset_resnet():
-    resnet = ResNet()
+def get_model():
+    my_model = BlobClassifierModel()
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
-    resnet(random_image)
-    resnet.save_weights(resnet_weights_path)
+    my_model(random_image)
+    my_model.load_weights(weights_path)
+    return my_model
+
+def reset_model():
+    my_model = BlobClassifierModel()
+    random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
+    my_model(random_image)
+    my_model.save_weights(weights_path)
 
 def get_img(img_path):
     img = read_file(img_path)
@@ -37,8 +39,8 @@ def get_img(img_path):
     return img
 
 def train():
-    resnet = get_resnet()
-    opt = AdamOptimizer(1e-6)
+    my_model = get_model()
+    opt = AdamOptimizer(1e-4)
     images_data = get_classification_data("data/data_classification_train.json")
     count = 0
     print("Training started")
@@ -48,7 +50,7 @@ def train():
             img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
             def get_loss():
                 img_vector = tf.convert_to_tensor([img], dtype=np.float32)
-                logits = resnet(img_vector)
+                logits = my_model(img_vector)
                 entropy = sparse_softmax_cross_entropy_with_logits(labels=[label], logits=logits)
                 entropy = tf.gather(entropy, 0)
                 save_data(label, logits[0].numpy().tolist(), entropy.numpy().tolist())
@@ -56,17 +58,23 @@ def train():
             opt.minimize(get_loss)
             count += 1
             if (count % 1000 == 0):
-                resnet.save_weights(resnet_weights_path)
+                my_model.save_weights(weights_path)
                 print("Weights saved")
 
 def evaluate():
-    resnet = get_resnet()
+    my_model = get_model()
     images_data = get_classification_data("data/data_classification_evaluate.json")
+    count = 0
     for (i, label) in images_data:
         img = get_img("./pictures/pictures_classification_evaluate/{}.png".format(i))
         img_vector = tf.convert_to_tensor([img], dtype=np.float32)
-        logits = resnet(img_vector)
-        print(label, logits.numpy())
+        logits = my_model(img_vector).numpy()[0]
+        if (np.argmax(logits) == label):
+            count += 1
+            print("X {} {}".format(label, logits))
+        else:
+            print("  {} {}".format(label, logits))
+    print("Number of probs where label prob is the max: {}/{}".format(count, len(images_data)))
 
 reseting = False
 training = False
@@ -80,7 +88,7 @@ for instruction in sys.argv:
         evaluating = True
 
 if reseting:
-    reset_resnet()
+    reset_model()
 if training:
     train()
 if evaluating:
