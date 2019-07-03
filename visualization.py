@@ -51,25 +51,32 @@ df_pre_tail = df.tail(20000).head(10000)
 plt.figure(figsize=(18, 12))
 
 # Prob of label over iterations
-plt.subplot(4, 2, 1)
+plt.subplot(3, 3, 1)
 label_probs = df["label_prob"].values
 plt.plot(label_probs)
 plt.title("Right Prob")
 
-# Entropy over iterations
-plt.subplot(4, 2, 2)
-label_probs = df["entropy"].values
-plt.plot(label_probs, color="orange")
-plt.title("Entropy")
-
-# Prob density
-plt.subplot(4, 2, 3)
+# Prob of label density
+plt.subplot(3, 3, 2)
 plt.violinplot([df_tail["label_prob"], df_pre_tail["label_prob"]])
 plt.xticks([1, 2], ["Tail", "PreTail"])
 plt.title("Right Prob density")
 
+# Prob of label density per label
+plt.subplot(3, 3, 3)
+prob_per_label = order_by_label(df_tail, "label_prob")
+plt.violinplot(prob_per_label)
+plt.xticks([1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5])
+plt.title("Right Prob density per label - Tail")
+
+# Entropy over iterations
+plt.subplot(3, 3, 4)
+label_probs = df["entropy"].values
+plt.plot(label_probs, color="orange")
+plt.title("Entropy")
+
 # Entropy density
-plt.subplot(4, 2, 4)
+plt.subplot(3, 3, 5)
 parts = plt.violinplot([df_tail["entropy"], df_pre_tail["entropy"]])
 for pb in parts["bodies"]:
     pb.set_facecolor("orange")
@@ -79,15 +86,8 @@ parts["cbars"].set_color("orange")
 plt.xticks([1, 2], ["Tail", "PreTail"])
 plt.title("Entropy density")
 
-# Prob density per label
-plt.subplot(4, 2, 5)
-prob_per_label = order_by_label(df_tail, "label_prob")
-plt.violinplot(prob_per_label)
-plt.xticks([1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5])
-plt.title("Right Prob density per label - Tail")
-
 # Entropy per label
-plt.subplot(4, 2, 6)
+plt.subplot(3, 3, 6)
 entropy_per_label = order_by_label(df_tail, "entropy")
 parts = plt.violinplot(entropy_per_label)
 for pb in parts["bodies"]:
@@ -98,8 +98,25 @@ parts["cbars"].set_color("orange")
 plt.xticks([1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5])
 plt.title("Entropy density per label - Tail")
 
+# Wrong Prob over iterations
+plt.subplot(3, 3, 7)
+label_probs = df["label_prob"].values
+plt.plot(label_probs, color="green")
+plt.title("Wrong Prob")
+
 # Wrong Prob density
-plt.subplot(4, 2, 7)
+plt.subplot(3, 3, 8)
+parts = plt.violinplot([df_tail["wrong_prob"], df_pre_tail["wrong_prob"]])
+for pb in parts["bodies"]:
+    pb.set_facecolor("green")
+parts["cmins"].set_color("green")
+parts["cmaxes"].set_color("green")
+parts["cbars"].set_color("green")
+plt.xticks([1, 2], ["Tail", "PreTail"])
+plt.title("Wrong Prob density")
+
+# Wrong Prob density per label
+plt.subplot(3, 3, 9)
 wrong_prob_per_label = order_by_label(df_tail, "wrong_prob")
 parts = plt.violinplot(wrong_prob_per_label)
 for pb in parts["bodies"]:
@@ -109,11 +126,5 @@ parts["cmaxes"].set_color("green")
 parts["cbars"].set_color("green")
 plt.xticks([1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5])
 plt.title("Wrong Prob density per label - Tail")
-
-# Wrong Prob over iterations
-plt.subplot(4, 2, 8)
-label_probs = df["label_prob"].values
-plt.plot(label_probs, color="green")
-plt.title("Wrong Prob")
 
 plt.show()
