@@ -14,12 +14,20 @@ from tracking import save_data
 
 tf.enable_eager_execution()
 
+resnet_weights_path = "./weights/resnet"
+
 def get_resnet():
     resnet = ResNet()
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
     resnet(random_image)
-    resnet.load_weights("./weights/resnet")
+    resnet.load_weights(resnet_weights_path)
     return resnet
+
+def reset_resnet():
+    resnet = ResNet()
+    random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
+    resnet(random_image)
+    resnet.save_weights(resnet_weights_path)
 
 def get_img(img_path):
     img = read_file(img_path)
@@ -48,7 +56,7 @@ def train():
             opt.minimize(get_loss)
             count += 1
             if (count % 1000 == 0):
-                resnet.save_weights("./weights/resnet")
+                resnet.save_weights(resnet_weights_path)
         print("Weights saved")
 
 def evaluate():
@@ -60,17 +68,22 @@ def evaluate():
         logits = resnet(img_vector)
         print(label, logits.numpy())
 
+reseting = False
 training = False
 evaluating = False
 for instruction in sys.argv:
+    if (instruction == "reset"):
+        reseting = True
     if (instruction == "train"):
         training = True
     if (instruction == "evaluate"):
         evaluating = True
 
+if reseting:
+    reset_resnet()
 if training:
     train()
 if evaluating:
     evaluate()
-if (training == False) & (evaluating == False):
-    print("Usage: 'python main_classification.py train' or 'python main_classification.py evaluate'")
+if (training == False) & (evaluating == False) & (reseting == False):
+    print("Usage: 'python main_classification.py [train, evaluate, reset]'")
