@@ -40,7 +40,7 @@ def get_img(img_path):
 
 def train():
     my_model = get_model()
-    opt = AdamOptimizer(1e-4)
+    opt = AdamOptimizer(1e-5)
     images_data = get_classification_data("data/data_classification_train.json")
     count = 0
     print("Training started")
