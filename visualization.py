@@ -104,7 +104,7 @@ plt.title("Entropy density per label - Tail")
 
 # Wrong Prob over iterations
 plt.subplot(3, 3, 7)
-label_probs = df["label_prob"].values
+label_probs = df["wrong_prob"].values
 plt.plot(label_probs, color="green")
 plt.ylim(0., 1.)
 plt.title("Wrong Prob")
