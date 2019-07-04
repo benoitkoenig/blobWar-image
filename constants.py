@@ -1,2 +1,2 @@
-image_size = 128
+image_size = 256
 nb_class=6
