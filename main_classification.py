@@ -11,7 +11,7 @@ from tensorflow.train import AdamOptimizer
 
 tf.enable_eager_execution()
 
-from constants import image_size
+from constants import image_size, nb_class
 from model import BlobClassifierModel
 from preprocess import get_classification_data
 from tracking import save_data
@@ -40,7 +40,7 @@ def get_img(img_path):
 
 def train():
     my_model = get_model()
-    opt = AdamOptimizer(1e-5)
+    opt = AdamOptimizer(1e-4)
     images_data = get_classification_data("data/data_classification_train.json")
     count = 0
     print("Training started")
@@ -66,16 +66,22 @@ def evaluate(num):
     my_model = get_model()
     images_data = get_classification_data("data/data_classification_evaluate_{}.json".format(num))
     count = 0
+    succeeds = [0] * nb_class
+    total = [0] * nb_class
     for (i, label) in images_data:
         img = get_img("./pictures/pictures_classification_evaluate_{}/{}.png".format(num, i))
         img_vector = tf.convert_to_tensor([img], dtype=np.float32)
         logits = my_model(img_vector).numpy()[0]
+        total[label] += 1
         if (np.argmax(logits) == label):
+            succeeds[label] += 1
             count += 1
             print("  {} {}".format(label, logits.tolist()))
         else:
             print("X {} {}".format(label, logits.tolist()))
     print("Number of probs where label prob is the max: {}/{}".format(count, len(images_data)))
+    for label in range(nb_class):
+        print("Label {}: {}/{}".format(label, succeeds[label], total[label]))
 
 instruction = None
 if len(sys.argv) > 1:
