@@ -44,54 +44,54 @@ def train():
     images_data = get_classification_data("data/data_classification_train.json")
     count = 0
     print("Training started")
-    while True: # Until we manually stop it. I dont care about over-fitting for now - I just want to see if any results will come
-        shuffle(images_data)
-        for (i, label) in images_data:
-            img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
-            def get_loss():
-                img_vector = tf.convert_to_tensor([img], dtype=np.float32)
-                logits = my_model(img_vector)
-                entropy = sparse_softmax_cross_entropy_with_logits(labels=[label], logits=logits)
-                entropy = tf.gather(entropy, 0)
-                save_data(label, logits[0].numpy().tolist(), entropy.numpy().tolist())
-                return entropy
-            opt.minimize(get_loss)
-            count += 1
-            if (count % 1000 == 0):
-                my_model.save_weights(weights_path)
-                print("Weights saved")
+    shuffle(images_data)
+    for (i, label) in images_data:
+        img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
+        def get_loss():
+            img_vector = tf.convert_to_tensor([img], dtype=np.float32)
+            logits = my_model(img_vector)
+            entropy = sparse_softmax_cross_entropy_with_logits(labels=[label], logits=logits)
+            entropy = tf.gather(entropy, 0)
+            save_data(label, logits[0].numpy().tolist(), entropy.numpy().tolist())
+            return entropy
+        opt.minimize(get_loss)
+        count += 1
+        if (count % 1000 == 0):
+            my_model.save_weights(weights_path)
+            print("Weights saved")
+    my_model.save_weights(weights_path)
+    print("Weights saved")
 
-def evaluate():
+def evaluate(num):
     my_model = get_model()
-    images_data = get_classification_data("data/data_classification_evaluate.json")
+    images_data = get_classification_data("data/data_classification_evaluate_{}.json".format(num))
     count = 0
     for (i, label) in images_data:
-        img = get_img("./pictures/pictures_classification_evaluate/{}.png".format(i))
+        img = get_img("./pictures/pictures_classification_evaluate_{}/{}.png".format(num, i))
         img_vector = tf.convert_to_tensor([img], dtype=np.float32)
         logits = my_model(img_vector).numpy()[0]
         if (np.argmax(logits) == label):
             count += 1
-            print("X {} {}".format(label, logits))
+            print("  {} {}".format(label, logits.tolist()))
         else:
-            print("  {} {}".format(label, logits))
+            print("X {} {}".format(label, logits.tolist()))
     print("Number of probs where label prob is the max: {}/{}".format(count, len(images_data)))
 
-reseting = False
-training = False
-evaluating = False
-for instruction in sys.argv:
-    if (instruction == "reset"):
-        reseting = True
-    if (instruction == "train"):
-        training = True
-    if (instruction == "evaluate"):
-        evaluating = True
+instruction = None
+if len(sys.argv) > 1:
+    instruction = sys.argv[1]
+param = None
+if len(sys.argv) > 2:
+    param = sys.argv[2]
 
-if reseting:
+if (instruction == "reset"):
     reset_model()
-if training:
+elif (instruction == "train"):
     train()
-if evaluating:
-    evaluate()
-if (training == False) & (evaluating == False) & (reseting == False):
+elif (instruction == "evaluate"):
+    if (param == "100") | (param == "10000"):
+        evaluate(eval(param))
+    else:
+        print("Usage: 'python main_classification.py evaluate [100, 10000]'")
+else:
     print("Usage: 'python main_classification.py [train, evaluate, reset]'")
