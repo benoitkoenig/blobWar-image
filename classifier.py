@@ -3,9 +3,9 @@ from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D
 
 from constants import nb_class
 
-class BlobClassifierModel(Model):
+class Classifier(Model):
     def __init__(self):
-        super(BlobClassifierModel, self).__init__()
+        super(Classifier, self).__init__()
         self.conv1 = Conv2D(8, kernel_size=(5, 5), activation="relu", padding="same")
         self.conv2 = Conv2D(8, kernel_size=(3, 3), strides=(2, 2), activation="relu", padding="same")
         self.conv3 = Conv2D(8, kernel_size=(3, 3), strides=(2, 2), activation="relu", padding="same")

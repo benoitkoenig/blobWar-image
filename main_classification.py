@@ -12,24 +12,24 @@ from tensorflow.train import AdamOptimizer
 tf.enable_eager_execution()
 
 from constants import image_size, nb_class
-from model import BlobClassifierModel
+from classifier import Classifier
 from preprocess import get_classification_data
 from tracking import save_data
 
 weights_path = "./weights/weights"
 
 def get_model():
-    my_model = BlobClassifierModel()
+    classifier = Classifier()
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
-    my_model(random_image)
-    my_model.load_weights(weights_path)
-    return my_model
+    classifier(random_image)
+    classifier.load_weights(weights_path)
+    return classifier
 
 def reset_model():
-    my_model = BlobClassifierModel()
+    classifier = Classifier()
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
-    my_model(random_image)
-    my_model.save_weights(weights_path)
+    classifier(random_image)
+    classifier.save_weights(weights_path)
 
 def get_img(img_path):
     img = read_file(img_path)
@@ -39,7 +39,7 @@ def get_img(img_path):
     return img
 
 def train():
-    my_model = get_model()
+    classifier = get_model()
     opt = AdamOptimizer(1e-5)
     images_data = get_classification_data("data/data_classification_train.json")
     count = 0
@@ -49,7 +49,7 @@ def train():
         img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
         def get_loss():
             img_vector = tf.convert_to_tensor([img], dtype=np.float32)
-            logits = my_model(img_vector)
+            logits = classifier(img_vector)
             entropy = sparse_softmax_cross_entropy_with_logits(labels=[label], logits=logits)
             entropy = tf.gather(entropy, 0)
             save_data(label, logits[0].numpy().tolist(), entropy.numpy().tolist())
@@ -57,13 +57,13 @@ def train():
         opt.minimize(get_loss)
         count += 1
         if (count % 1000 == 0):
-            my_model.save_weights(weights_path)
+            classifier.save_weights(weights_path)
             print("Weights saved")
-    my_model.save_weights(weights_path)
+    classifier.save_weights(weights_path)
     print("Weights saved")
 
 def evaluate(num):
-    my_model = get_model()
+    classifier = get_model()
     images_data = get_classification_data("data/data_classification_evaluate_{}.json".format(num))
     count = 0
     succeeds = [0] * nb_class
@@ -71,7 +71,7 @@ def evaluate(num):
     for (i, label) in images_data:
         img = get_img("./pictures/pictures_classification_evaluate_{}/{}.png".format(num, i))
         img_vector = tf.convert_to_tensor([img], dtype=np.float32)
-        logits = my_model(img_vector).numpy()[0]
+        logits = classifier(img_vector).numpy()[0]
         total[label] += 1
         if (np.argmax(logits) == label):
             succeeds[label] += 1
