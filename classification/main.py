@@ -4,8 +4,6 @@ import sys
 import tensorflow as tf
 from tensorflow.image import decode_jpeg, resize
 from tensorflow.io import read_file
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, Dropout
 from tensorflow.nn import softmax, sparse_softmax_cross_entropy_with_logits
 from tensorflow.train import AdamOptimizer
 
@@ -41,12 +39,12 @@ def get_img(img_path):
 def train():
     classifier = get_model()
     opt = AdamOptimizer(1e-5)
-    images_data = get_classification_data("data/data_classification_train.json")
+    images_data = get_classification_data("../data/data_classification_train.json")
     count = 0
     print("Training started")
     shuffle(images_data)
     for (i, label) in images_data:
-        img = get_img("./pictures/pictures_classification_train/{}.png".format(i))
+        img = get_img("../pictures/pictures_classification_train/{}.png".format(i))
         def get_loss():
             img_vector = tf.convert_to_tensor([img], dtype=np.float32)
             logits = classifier(img_vector)
@@ -64,12 +62,12 @@ def train():
 
 def evaluate(num):
     classifier = get_model()
-    images_data = get_classification_data("data/data_classification_evaluate_{}.json".format(num))
+    images_data = get_classification_data("../data/data_classification_evaluate_{}.json".format(num))
     count = 0
     succeeds = [0] * nb_class
     total = [0] * nb_class
     for (i, label) in images_data:
-        img = get_img("./pictures/pictures_classification_evaluate_{}/{}.png".format(num, i))
+        img = get_img("../pictures/pictures_classification_evaluate_{}/{}.png".format(num, i))
         img_vector = tf.convert_to_tensor([img], dtype=np.float32)
         logits = classifier(img_vector).numpy()[0]
         total[label] += 1
