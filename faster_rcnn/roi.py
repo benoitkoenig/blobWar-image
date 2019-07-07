@@ -1,7 +1,10 @@
 import numpy as np
 import tensorflow as tf
 
-def non_max_suppression_fast(boxes, probs, overlap_thresh=0.9, max_boxes=18):
+overlap_thresh = .8
+max_boxes = 18
+
+def non_max_suppression_fast(boxes, probs):
 	# code used from here: http://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
 	# if there are no boxes, return an empty list
 	if len(boxes) == 0:
@@ -70,7 +73,7 @@ def non_max_suppression_fast(boxes, probs, overlap_thresh=0.9, max_boxes=18):
 	
 	return boxes, probs
 
-def rpn_to_roi(rpn_input, regr_layer, max_boxes=18, overlap_thresh=0.9):
+def rpn_to_roi(rpn_input, regr_layer):
 	anchor_sizes = [4]
 	anchor_ratios = [[1, 1]]
 
@@ -125,6 +128,6 @@ def rpn_to_roi(rpn_input, regr_layer, max_boxes=18, overlap_thresh=0.9):
 	all_boxes = np.delete(all_boxes, idxs, 0)
 	all_probs = np.delete(all_probs, idxs, 0)
 
-	boxes, probs = non_max_suppression_fast(all_boxes, all_probs, overlap_thresh=overlap_thresh, max_boxes=max_boxes)
+	boxes, probs = non_max_suppression_fast(all_boxes, all_probs)
 
 	return boxes, probs
