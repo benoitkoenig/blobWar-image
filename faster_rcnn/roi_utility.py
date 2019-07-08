@@ -73,7 +73,7 @@ def non_max_suppression_fast(boxes, probs):
 	return boxes, probs
 
 def rpn_to_roi(rpn_input, regr_layer):
-	anchor_sizes = [16]
+	anchor_sizes = [8]
 	anchor_ratios = [[1, 1]]
 
 	assert rpn_input.shape[0] == 1
@@ -95,10 +95,10 @@ def rpn_to_roi(rpn_input, regr_layer):
 
 			X, Y = np.meshgrid(np.arange(cols), np.arange(rows))
 
-			A[0, :, :, curr_layer] = np.maximum(X - anchor_x/2, 0)
-			A[1, :, :, curr_layer] = np.maximum(Y - anchor_y/2, 0)
-			A[2, :, :, curr_layer] = np.minimum(X + anchor_x/2, cols-1)
-			A[3, :, :, curr_layer] = np.minimum(Y + anchor_y/2, rows-1)
+			A[0, :, :, curr_layer] = np.maximum(X - anchor_x//2, 0)
+			A[1, :, :, curr_layer] = np.maximum(Y - anchor_y//2, 0)
+			A[2, :, :, curr_layer] = np.minimum(X + anchor_x//2, cols-1)
+			A[3, :, :, curr_layer] = np.minimum(Y + anchor_y//2, rows-1)
 
 			curr_layer += 1
 
