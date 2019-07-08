@@ -5,7 +5,7 @@ from constants import feature_size
 
 def get_localisation_data(file_path):
     targets = []
-    with open(file_path) as json_file:  
+    with open(file_path) as json_file:
         data = json.load(json_file)
     data_index = 0
     while str(data_index) in data:
@@ -15,13 +15,10 @@ def get_localisation_data(file_path):
             if (blob["alive"] == True):
                 x = int(blob["x"] * feature_size)
                 y = int(blob["y"] * feature_size)
-                x_minus = max(0, x - 1)
-                y_minus = max(0, y - 1)
-                x_plus = min(feature_size - 1, x + 1)
-                y_plus = min(feature_size - 1, y + 1)
-                for a in [x_minus, x, x_plus]:
-                    for b in [y_minus, y, y_plus]:
-                        target[a][b] = 1
+                for a in [x - 2, x, x + 2]:
+                    for b in [y - 2, y, y + 2]:
+                        if (a >= 0) & (a < feature_size) & (b >= 0) & (b < feature_size):
+                            target[a][b] = 1
         targets.append((data_index, target))
         data_index += 1
     return targets
@@ -51,3 +48,28 @@ def get_classification_data(file_path):
         images_data.append((data_index, label))
         data_index += 1
     return images_data
+
+# def get_classification_data(file_path):
+#     targets = []
+#     with open(file_path) as json_file:
+#         data = json.load(json_file)
+#     data_index = 0
+#     while str(data_index) in data:
+#         picture_data = data[str(data_index)]
+#         target = np.zeros((feature_size, feature_size, 1))
+#         all_blobs = picture_data["army"] + picture_data["enemy"]
+#         blob_ids = [j for j, b in enumerate(all_blobs) if (b["alive"] == True)]
+#         for blob_id in blob_ids:
+#             blob = all_blobs[blob_id]
+#             x = int(blob["x"] * feature_size)
+#             y = int(blob["y"] * feature_size)
+#             class_blob = 1 + statuses[blob["status"]]
+#             if (blob_id >= 3):
+#                 class_blob += 3
+#             for a in [x - 2, x, x + 2]:
+#                 for b in [y - 2, y, y + 2]:
+#                     if (a >= 0) & (a < feature_size) & (b >= 0) & (b < feature_size):
+#                         target[a][b] = class_blob
+#         targets.append((data_index, target))
+#         data_index += 1
+#     return targets
