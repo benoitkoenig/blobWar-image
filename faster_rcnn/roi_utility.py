@@ -1,8 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-overlap_thresh = .8
-max_boxes = 18
+from constants import overlap_thresh, max_boxes
 
 def non_max_suppression_fast(boxes, probs):
 	# code used from here: http://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
@@ -74,14 +73,14 @@ def non_max_suppression_fast(boxes, probs):
 	return boxes, probs
 
 def rpn_to_roi(rpn_input, regr_layer):
-	anchor_sizes = [4]
+	anchor_sizes = [16]
 	anchor_ratios = [[1, 1]]
 
 	assert rpn_input.shape[0] == 1
 
-	rpn_layer = tf.map_fn(lambda x: tf.math.sigmoid(x), rpn_input)
+	rpn_layer = tf.map_fn(lambda x: tf.math.sigmoid(x), rpn_input).numpy()
 
-	(rows,cols) = rpn_layer.shape[1:3]
+	(rows, cols) = rpn_layer.shape[1:3]
 	(rows, cols) = (int(rows), int(cols))
 
 	curr_layer = 0
@@ -96,38 +95,29 @@ def rpn_to_roi(rpn_input, regr_layer):
 
 			X, Y = np.meshgrid(np.arange(cols), np.arange(rows))
 
-			A[0, :, :, curr_layer] = X - anchor_x/2
-			A[1, :, :, curr_layer] = Y - anchor_y/2
-			A[2, :, :, curr_layer] = anchor_x
-			A[3, :, :, curr_layer] = anchor_y
-
-			A[2, :, :, curr_layer] = np.maximum(1, A[2, :, :, curr_layer])
-			A[3, :, :, curr_layer] = np.maximum(1, A[3, :, :, curr_layer])
-			A[2, :, :, curr_layer] += A[0, :, :, curr_layer]
-			A[3, :, :, curr_layer] += A[1, :, :, curr_layer]
-
-			A[0, :, :, curr_layer] = np.maximum(0, A[0, :, :, curr_layer])
-			A[1, :, :, curr_layer] = np.maximum(0, A[1, :, :, curr_layer])
-			A[2, :, :, curr_layer] = np.minimum(cols-1, A[2, :, :, curr_layer])
-			A[3, :, :, curr_layer] = np.minimum(rows-1, A[3, :, :, curr_layer])
+			A[0, :, :, curr_layer] = np.maximum(X - anchor_x/2, 0)
+			A[1, :, :, curr_layer] = np.maximum(Y - anchor_y/2, 0)
+			A[2, :, :, curr_layer] = np.minimum(X + anchor_x/2, cols-1)
+			A[3, :, :, curr_layer] = np.minimum(Y + anchor_y/2, rows-1)
 
 			curr_layer += 1
 
 	all_boxes = np.reshape(A.transpose((0, 3, 1, 2)), (4, -1)).transpose((1, 0))
-	all_probs = tf.transpose(rpn_layer, (0, 3, 1, 2))
-	all_probs = tf.reshape(all_probs, [-1])
-	# all_probs = rpn_layer.transpose((0, 3, 1, 2)).reshape((-1))
-
-	x1 = all_boxes[:, 0]
-	y1 = all_boxes[:, 1]
-	x2 = all_boxes[:, 2]
-	y2 = all_boxes[:, 3]
-
-	idxs = np.where((x1 - x2 >= 0) | (y1 - y2 >= 0))
-
-	all_boxes = np.delete(all_boxes, idxs, 0)
-	all_probs = np.delete(all_probs, idxs, 0)
+	all_probs = np.reshape(rpn_layer.transpose((0, 3, 1, 2)), (-1))
 
 	boxes, probs = non_max_suppression_fast(all_boxes, all_probs)
 
 	return boxes, probs
+
+def roi_pooling(input_features, input_roi):
+	features_maps = []
+	np_features = input_features.numpy()
+	for roi in input_roi:
+		x1 = roi[0]
+		y1 = roi[1]
+		x2 = roi[2]
+		y2 = roi[3]
+		specific_features = np_features[:, x1:x2, y1:y2, :]
+		specific_features = tf.image.resize(specific_features, (8, 8))
+		features_maps.append(specific_features)
+	return features_maps
