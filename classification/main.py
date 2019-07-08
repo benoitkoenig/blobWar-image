@@ -94,8 +94,8 @@ elif (instruction == "train"):
     train()
 elif (instruction == "evaluate"):
     if (param == "100") | (param == "10000"):
-        evaluate(eval(param))
+        evaluate(param)
     else:
-        print("Usage: 'python main_classification.py evaluate [100, 10000]'")
+        print("Usage: 'python main.py evaluate [100, 10000]'")
 else:
-    print("Usage: 'python main_classification.py [train, evaluate, reset]'")
+    print("Usage: 'python main.py [train, evaluate, reset]'")
