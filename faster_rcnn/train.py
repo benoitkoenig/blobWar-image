@@ -9,7 +9,7 @@ from tensorflow.train import AdamOptimizer
 tf.enable_eager_execution()
 
 from classifier import Classifier
-from constants import image_size, nb_class
+from constants import image_size, nb_class, feature_size
 from feature_mapper import FeatureMapper
 from preprocess import get_localization_data
 from roi_utility import rpn_to_roi, roi_pooling
@@ -26,6 +26,11 @@ def train():
     feature_mapper = FeatureMapper()
     rpn = Rpn()
     classifier = Classifier()
+
+    feature_mapper.load_weights("./weights/feature_mapper")
+    rpn.load_weights("./weights/rpn")
+    classifier.load_weights("./weights/classifier")
+
     opt = AdamOptimizer(1e-4)
     with open("../data/data_classification_train.json") as json_file:
         data = json.load(json_file)
@@ -76,7 +81,13 @@ def train():
                 classifier.save_weights("./weights/classifier")
                 print("\nWeights saved")
                 print(data_index)
-                print(data[str(data_index)])
+                for (blob_id, b) in enumerate(data[str(data_index)]["army"] + data[str(data_index)]["enemy"]):
+                    if (b["alive"] == True):
+                        if (blob_id >= 3):
+                            print("enemy {}".format(b["status"]))
+                        else:
+                            print("army {}".format(b["status"]))
+                        print((b["x"] * feature_size, b["y"] * feature_size))
                 print(boxes)
                 print(probs)
                 for c in classification_logits:
