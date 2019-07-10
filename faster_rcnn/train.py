@@ -14,6 +14,7 @@ from feature_mapper import FeatureMapper
 from preprocess import get_localization_data
 from roi_utility import rpn_to_roi, roi_pooling
 from rpn import Rpn
+from tracking import save_data
 
 def get_img(img_path):
     img = read_file(img_path)
@@ -43,7 +44,7 @@ def train():
         def get_loss():
             features = feature_mapper(img)
             (rpn_class, _) = rpn(features)
-            boxes, probs = rpn_to_roi(rpn_class, _)
+            boxes, _ = rpn_to_roi(rpn_class, _)
             feature_areas = roi_pooling(features, boxes)
             classification_logits = []
             for fa in feature_areas:
@@ -75,24 +76,12 @@ def train():
             classification_loss = sparse_softmax_cross_entropy_with_logits(logits=classification_logits, labels=labels_boxes)
             classification_loss = tf.reduce_mean(classification_loss)
 
+            save_data(data_index, data[str(data_index)], boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes)
+
             if (data_index % 100 == 99):
                 feature_mapper.save_weights("./weights/feature_mapper")
                 rpn.save_weights("./weights/rpn")
                 classifier.save_weights("./weights/classifier")
-                print("\nWeights saved")
-                print(data_index)
-                for (blob_id, b) in enumerate(data[str(data_index)]["army"] + data[str(data_index)]["enemy"]):
-                    if (b["alive"] == True):
-                        if (blob_id >= 3):
-                            print("enemy {}".format(b["status"]))
-                        else:
-                            print("army {}".format(b["status"]))
-                        print((b["x"] * feature_size, b["y"] * feature_size))
-                print(boxes)
-                print(probs)
-                for c in classification_logits:
-                    print(c.numpy().tolist())
-
             return localization_loss + classification_loss
         opt.minimize(get_loss)
         data_index += 1
