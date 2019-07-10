@@ -111,13 +111,12 @@ def rpn_to_roi(rpn_input, regr_layer):
 
 def roi_pooling(input_features, input_roi):
 	features_maps = []
-	np_features = input_features.numpy()
 	for roi in input_roi:
 		x1 = roi[0]
 		y1 = roi[1]
 		x2 = roi[2]
 		y2 = roi[3]
-		specific_features = np_features[:, x1:x2, y1:y2, :]
+		specific_features = tf.slice(input_features, [0, x1, y1, 0], [-1, x2-x1, y2-y1, -1])
 		specific_features = tf.image.resize(specific_features, (8, 8))
 		features_maps.append(specific_features)
 	return features_maps
