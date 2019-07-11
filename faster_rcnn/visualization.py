@@ -61,18 +61,29 @@ plt.figure(figsize=(18, 12))
 # Prob of label tail
 plt.subplot(4, 2, 1)
 probs_per_label = get_probs_per_label(df.tail(10000))
-plt.violinplot(probs_per_label)
+parts = plt.violinplot(probs_per_label)
 plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
-plt.ylim(0., 1.)
+plt.ylim(-.1, 1.1)
+for pc in parts["bodies"]:
+    pc.set_alpha(1)
+parts["cmins"].set_alpha(0)
+parts["cmaxes"].set_alpha(0)
+parts["cbars"].set_alpha(0)
 plt.title("Label Prob density")
 
 # Prob of n label tail
 for i in range(7):
     plt.subplot(4, 2, 2 + i)
     probs_per_label = get_n_probs_per_label(df.tail(10000), i)
-    plt.violinplot(probs_per_label)
-    plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
-    plt.ylim(0., 1.)
+    parts = plt.violinplot(probs_per_label)
+    plt.xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6])
+    plt.ylim(-.1, 1.1)
+    for pc in parts["bodies"]:
+        pc.set_alpha(1)
+        pc.set_facecolor("#D43F3A")
+    parts["cmins"].set_alpha(0)
+    parts["cmaxes"].set_alpha(0)
+    parts["cbars"].set_alpha(0)
     plt.title("Prob density of {}".format(i))
 
 plt.show()
