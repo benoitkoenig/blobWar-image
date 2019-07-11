@@ -1,12 +1,14 @@
 import numpy as np
 
-from constants import feature_size
+from constants import feature_size, anchor_size
 
 statuses = {
     "normal": 0,
     "hat": 1,
     "ghost": 2,
 }
+
+s = anchor_size // 2
 
 def get_localization_data(picture_data):
     target = np.zeros((feature_size, feature_size, 1), dtype=np.int)
@@ -19,8 +21,8 @@ def get_localization_data(picture_data):
         label = 1 + statuses[blob["status"]]
         if (blob_id >= 3):
             label += 3
-        for a in np.arange(x - 4, x + 5):
-            for b in np.arange(y - 4, y + 4):
+        for a in np.arange(x - s, x + s):
+            for b in np.arange(y - s, y + s):
                 if (a >= 0) & (a < feature_size) & (b >= 0) & (b < feature_size):
                     target[a][b] = label
     return target

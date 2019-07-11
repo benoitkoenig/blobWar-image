@@ -76,7 +76,7 @@ for i in range(7):
     plt.subplot(4, 2, 2 + i)
     probs_per_label = get_n_probs_per_label(df.tail(10000), i)
     parts = plt.violinplot(probs_per_label)
-    plt.xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6])
+    plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
     plt.ylim(-.1, 1.1)
     for pc in parts["bodies"]:
         pc.set_alpha(1)

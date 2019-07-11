@@ -4,7 +4,7 @@ import tensorflow as tf
 tf.enable_eager_execution()
 
 from classifier import Classifier
-from constants import image_size, feature_size
+from constants import image_size, feature_size, anchor_size
 from feature_mapper import FeatureMapper
 from rpn import Rpn
 
@@ -15,7 +15,7 @@ def reset_models():
 
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
     random_features = tf.convert_to_tensor(np.random.random((1, feature_size, feature_size, 8)), dtype=np.float32)
-    random_feature_area = tf.convert_to_tensor(np.random.random((1, 8, 8, 8)), dtype=np.float32)
+    random_feature_area = tf.convert_to_tensor(np.random.random((1, anchor_size, anchor_size, 8)), dtype=np.float32)
 
     _ = feature_mapper(random_image)
     (_, _) = rpn(random_features)

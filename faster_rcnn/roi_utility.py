@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from constants import overlap_thresh, max_boxes
+from constants import overlap_thresh, max_boxes, anchor_size as s
 
 def non_max_suppression_fast(boxes, probs):
 	# code used from here: http://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
@@ -73,7 +73,7 @@ def non_max_suppression_fast(boxes, probs):
 	return boxes, probs
 
 def rpn_to_roi(rpn_input, regr_layer):
-	anchor_sizes = [8]
+	anchor_sizes = [s]
 	anchor_ratios = [[1, 1]]
 
 	assert rpn_input.shape[0] == 1
@@ -117,6 +117,6 @@ def roi_pooling(input_features, input_roi):
 		x2 = roi[2]
 		y2 = roi[3]
 		specific_features = tf.slice(input_features, [0, x1, y1, 0], [-1, x2-x1, y2-y1, -1])
-		specific_features = tf.image.resize(specific_features, (8, 8))
+		specific_features = tf.image.resize(specific_features, (s, s))
 		features_maps.append(specific_features)
 	return features_maps
