@@ -12,7 +12,7 @@ from classifier import Classifier
 from constants import image_size, nb_class, feature_size
 from feature_mapper import FeatureMapper
 from preprocess import get_localization_data
-from roi_utility import rpn_to_roi, roi_pooling
+from roi_utility import rpn_to_roi
 from rpn import Rpn
 from tracking import save_data
 
@@ -45,11 +45,7 @@ def train():
             features = feature_mapper(img)
             (rpn_class, _) = rpn(features)
             boxes, _ = rpn_to_roi(rpn_class, _)
-            feature_areas = roi_pooling(features, boxes)
-            classification_logits = []
-            for fa in feature_areas:
-                logits = classifier(fa)
-                classification_logits.append(tf.reshape(logits, [nb_class]))
+            classification_logits = classifier(features, boxes)
 
             localization_logits = tf.reshape(rpn_class, [-1])
             localization_labels = np.reshape(np.copy(target), (-1))
@@ -57,7 +53,6 @@ def train():
             localization_loss = sigmoid_cross_entropy_with_logits(labels=localization_labels, logits=localization_logits)
             localization_loss = tf.reduce_mean(localization_loss)
 
-            classification_loss = []
             labels_boxes = []
             for j in range(len(boxes)):
                 b = boxes[j]
