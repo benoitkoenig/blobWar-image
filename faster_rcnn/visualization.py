@@ -12,23 +12,6 @@ pd.plotting.register_matplotlib_converters()
 # Methods for data formatting #
 ###############################
 
-def get_probs_per_label(df):
-    output = [[], [], [], [], [], [], []]
-    def handle_row(row):
-        classification_logits = eval(row["classification_logits"])
-        right_labels = eval(row["label_boxes"])
-        for i in range(len(classification_logits)):
-            logits = classification_logits[i]
-            right_label = right_labels[i]
-            probs = tf.nn.softmax(logits).numpy().tolist()
-            label_prob = probs[right_label]
-            output[right_label].append(label_prob)
-    df.apply(handle_row, axis=1)
-    for i in range(len(output)):
-        if (output[i] == []):
-            output[i] = -1.
-    return output
-
 def get_n_probs_per_label(df):
     outputs = []
     for n in range(7):
