@@ -29,8 +29,10 @@ def get_probs_per_label(df):
             output[i] = -1.
     return output
 
-def get_n_probs_per_label(df, n):
-    output = [[], [], [], [], [], [], []]
+def get_n_probs_per_label(df):
+    outputs = []
+    for n in range(7):
+        outputs.append([[], [], [], [], [], [], []])
     def handle_row(row):
         classification_logits = eval(row["classification_logits"])
         right_labels = eval(row["label_boxes"])
@@ -38,13 +40,16 @@ def get_n_probs_per_label(df, n):
             logits = classification_logits[i]
             right_label = right_labels[i]
             probs = tf.nn.softmax(logits).numpy().tolist()
-            label_prob = probs[n]
-            output[right_label].append(label_prob)
+            for n in range(7):
+                n_prob = probs[n]
+                outputs[right_label][n].append(n_prob)
     df.apply(handle_row, axis=1)
-    for i in range(len(output)):
-        if (output[i] == []):
-            output[i] = -1.
-    return output
+    for n in range(7):
+        for i in range(len(outputs[n])):
+            if (outputs[n][i] == []):
+                outputs[n][i] = -1.
+    outputs.append(outputs)
+    return outputs
 
 #########################################
 # Initializing dataframes and variables #
@@ -58,9 +63,13 @@ df = get_dataframes()
 
 plt.figure(figsize=(18, 12))
 
+all_probs_per_label = get_n_probs_per_label(df.tail(10000))
+
 # Prob of label tail
 plt.subplot(4, 2, 1)
-probs_per_label = get_probs_per_label(df.tail(10000))
+probs_per_label = []
+for i in range(7):
+    probs_per_label.append(all_probs_per_label[i][i])
 parts = plt.violinplot(probs_per_label)
 plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
 plt.ylim(0., 1.)
@@ -74,7 +83,7 @@ plt.title("Label Prob density")
 # Prob of n label tail
 for i in range(7):
     plt.subplot(4, 2, 2 + i)
-    probs_per_label = get_n_probs_per_label(df.tail(10000), i)
+    probs_per_label = all_probs_per_label[i]
     parts = plt.violinplot(probs_per_label)
     plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
     plt.ylim(0., 1.)
