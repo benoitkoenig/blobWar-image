@@ -48,7 +48,8 @@ def train():
             classification_logits = classifier(features, boxes)
 
             localization_logits = tf.reshape(rpn_class, [-1])
-            localization_labels = np.reshape(target, (-1))
+            localization_labels = np.reshape(np.copy(target), (-1)) # copy is important due to labels going from 0 to 1
+            localization_labels[localization_labels != 0] = 1
             localization_labels = tf.convert_to_tensor(localization_labels, dtype=np.float32)
             localization_loss = sigmoid_cross_entropy_with_logits(labels=localization_labels, logits=localization_logits)
             localization_loss = tf.reduce_mean(localization_loss)
