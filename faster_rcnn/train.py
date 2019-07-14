@@ -20,7 +20,7 @@ def get_img(img_path):
     img = read_file(img_path)
     img = decode_jpeg(img, channels=3)
     img = resize(img, [image_size, image_size])
-    img = img/255.0
+    img = 1 - img/255.
     return img
 
 def train():
@@ -48,7 +48,7 @@ def train():
             classification_logits = classifier(features, boxes)
 
             localization_logits = tf.reshape(rpn_class, [-1])
-            localization_labels = np.reshape(np.copy(target), (-1))
+            localization_labels = np.reshape(target, (-1))
             localization_labels = tf.convert_to_tensor(localization_labels, dtype=np.float32)
             localization_loss = sigmoid_cross_entropy_with_logits(labels=localization_labels, logits=localization_logits)
             localization_loss = tf.reduce_mean(localization_loss)

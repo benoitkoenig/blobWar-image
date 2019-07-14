@@ -24,6 +24,6 @@ class Classifier(Model):
             x = self.flat1(x)
             x = self.dense1(x)
             logits = self.dense_logits(x)
-            output.append(logits)
-        output = tf.reshape(output, [len(boxes), nb_class])
+            output.append(tf.gather(logits, 0))
+        output = tf.convert_to_tensor(output)
         return output
