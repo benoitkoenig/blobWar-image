@@ -20,7 +20,7 @@ def get_img(img_path):
     img = read_file(img_path)
     img = decode_jpeg(img, channels=3)
     img = resize(img, [image_size, image_size])
-    img = 1 - img/255.
+    img = 1 - img/255. # We would rather have the whole white void area be full of zeros than ones
     return img
 
 def train():
