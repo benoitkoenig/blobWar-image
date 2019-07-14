@@ -4,73 +4,44 @@ import tensorflow as tf
 from constants import overlap_thresh, max_boxes, anchor_size as s
 
 def non_max_suppression_fast(boxes, probs):
-	# code used from here: http://www.pyimagesearch.com/2015/02/16/faster-non-maximum-suppression-python/
-	# if there are no boxes, return an empty list
-	if len(boxes) == 0:
-		return []
-
-	# grab the coordinates of the bounding boxes
 	x1 = boxes[:, 0]
 	y1 = boxes[:, 1]
 	x2 = boxes[:, 2]
 	y2 = boxes[:, 3]
+	area = (x2 - x1) * (y2 - y1)
 
 	np.testing.assert_array_less(x1, x2)
 	np.testing.assert_array_less(y1, y2)
 
-	# if the bounding boxes integers, convert them to floats --
-	# this is important since we'll be doing a bunch of divisions
-	if boxes.dtype.kind == "i":
-		boxes = boxes.astype("float")
+	picked_box_ids = []
+	ids_sorted = np.argsort(probs)
 
-	# initialize the list of picked indexes	
-	pick = []
+	while (len(ids_sorted) > 0) & (len(picked_box_ids) < max_boxes):
+		current_id = ids_sorted[-1]
+		ids_sorted = ids_sorted[:-1]
+		picked_box_ids.append(current_id)
 
-	# calculate the areas
-	area = (x2 - x1) * (y2 - y1)
+		xx1_intersection = np.maximum(x1[current_id], x1[ids_sorted])
+		yy1_intersection = np.maximum(y1[current_id], y1[ids_sorted])
+		xx2_intersection = np.minimum(x2[current_id], x2[ids_sorted])
+		yy2_intersection = np.minimum(y2[current_id], y2[ids_sorted])
 
-	# sort the bounding boxes 
-	idxs = np.argsort(probs)
+		ww_intersection = np.maximum(0, xx2_intersection - xx1_intersection)
+		hh_intersection = np.maximum(0, yy2_intersection - yy1_intersection)
 
-	# keep looping while some indexes still remain in the indexes
-	# list
-	while len(idxs) > 0:
-		# grab the last index in the indexes list and add the
-		# index value to the list of picked indexes
-		last = len(idxs) - 1
-		i = idxs[last]
-		pick.append(i)
+		area_intersection = ww_intersection * hh_intersection
 
-		# find the intersection
+		area_union = area[current_id] + area[ids_sorted] - area_intersection
 
-		xx1_int = np.maximum(x1[i], x1[idxs[:last]])
-		yy1_int = np.maximum(y1[i], y1[idxs[:last]])
-		xx2_int = np.minimum(x2[i], x2[idxs[:last]])
-		yy2_int = np.minimum(y2[i], y2[idxs[:last]])
+		overlap = area_intersection / area_union # division of ints resulting in a float
 
-		ww_int = np.maximum(0, xx2_int - xx1_int)
-		hh_int = np.maximum(0, yy2_int - yy1_int)
+		ids_to_delete = np.where(overlap > overlap_thresh)[0]
+		ids_sorted = np.delete(ids_sorted, ids_to_delete)
 
-		area_int = ww_int * hh_int
+	picked_boxes = boxes[picked_box_ids].astype("int") # investigate if astype("int") is necessary here
+	picked_probs = probs[picked_box_ids]
 
-		# find the union
-		area_union = area[i] + area[idxs[:last]] - area_int
-
-		# compute the ratio of overlap
-		overlap = area_int/(area_union + 1e-6)
-
-		# delete all indexes from the index list that have
-		idxs = np.delete(idxs, np.concatenate(([last],
-			np.where(overlap > overlap_thresh)[0])))
-
-		if len(pick) >= max_boxes:
-			break
-
-	# return only the bounding boxes that were picked using the integer data type
-	boxes = boxes[pick].astype("int")
-	probs = probs[pick]
-	
-	return boxes, probs
+	return picked_boxes, picked_probs
 
 def rpn_to_roi(rpn_input, regr_layer):
 	anchor_sizes = [s]
