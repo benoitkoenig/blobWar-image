@@ -23,6 +23,24 @@ def get_img(img_path):
     img = 1 - img/255. # We would rather have the whole white void area be full of zeros than ones
     return img
 
+def get_labels_boxes(boxes, target):
+    labels_boxes = []
+    for j in range(len(boxes)):
+        b = boxes[j]
+        x1 = b[0]
+        y1 = b[1]
+        x2 = b[2]
+        y2 = b[3]
+        t = np.reshape(target[x1:x2, y1:y2], (-1))
+        t = np.delete(t, np.where(t == 0))
+        if (len(t) == 0):
+            labels_boxes.append(0)
+        else:
+            (classes, occurences) = np.unique(t, return_counts=True)
+            k = np.argmax(occurences)
+            labels_boxes.append(classes[k])
+    return labels_boxes
+
 def train():
     feature_mapper = FeatureMapper()
     rpn = Rpn()
@@ -37,7 +55,8 @@ def train():
         data = json.load(json_file)
     data_index = 0
     while str(data_index) in data:
-        target = get_localization_data(data[str(data_index)])
+        raw_data = data[str(data_index)]
+        target = get_localization_data(raw_data)
         img = get_img("../pictures/pictures_classification_train/{}.png".format(data_index))
         img = tf.convert_to_tensor([img])
 
@@ -54,32 +73,20 @@ def train():
             localization_loss = sigmoid_cross_entropy_with_logits(labels=localization_labels, logits=localization_logits)
             localization_loss = tf.reduce_mean(localization_loss)
 
-            labels_boxes = []
-            for j in range(len(boxes)):
-                b = boxes[j]
-                x1 = b[0]
-                y1 = b[1]
-                x2 = b[2]
-                y2 = b[3]
-                t = np.reshape(target[x1:x2, y1:y2], (-1))
-                t = np.delete(t, np.where(t == 0))
-                if (len(t) == 0):
-                    labels_boxes.append(0)
-                else:
-                    (classes, occurences) = np.unique(t, return_counts=True)
-                    k = np.argmax(occurences)
-                    labels_boxes.append(classes[k])
+            labels_boxes = get_labels_boxes(boxes, target)
             classification_loss = sparse_softmax_cross_entropy_with_logits(logits=classification_logits, labels=labels_boxes)
             classification_loss = tf.reduce_mean(classification_loss)
 
-            save_data(data_index, data[str(data_index)], boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes)
+            save_data(data_index, raw_data, boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes)
 
-            if (data_index % 100 == 99):
-                feature_mapper.save_weights("./weights/feature_mapper")
-                rpn.save_weights("./weights/rpn")
-                classifier.save_weights("./weights/classifier")
             return localization_loss + classification_loss
+
         opt.minimize(get_loss)
+
         data_index += 1
+        if (data_index % 100 == 99):
+            feature_mapper.save_weights("./weights/feature_mapper")
+            rpn.save_weights("./weights/rpn")
+            classifier.save_weights("./weights/classifier")
 
 train()
