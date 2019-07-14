@@ -8,10 +8,11 @@ statuses = {
     "ghost": 2,
 }
 
-s = anchor_size // 2
+s = 6
 
 def get_localization_data(picture_data):
     target = np.zeros((feature_size, feature_size), dtype=np.int)
+    regresion_map = np.zeros((feature_size, feature_size, 4))
     all_blobs = picture_data["army"] + picture_data["enemy"]
     blob_ids = [j for j, b in enumerate(all_blobs) if (b["alive"] == True)]
     for blob_id in blob_ids:
@@ -25,4 +26,8 @@ def get_localization_data(picture_data):
             for b in np.arange(x - s, x + s):
                 if (a >= 0) & (a < feature_size) & (b >= 0) & (b < feature_size):
                     target[a][b] = label
-    return target
+                    regresion_map[a][b][0] = x - b
+                    regresion_map[a][b][1] = y - a
+                    regresion_map[a][b][2] = 2 * s
+                    regresion_map[a][b][3] = 2 * s
+    return target, regresion_map
