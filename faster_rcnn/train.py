@@ -62,8 +62,8 @@ def train():
 
         def get_loss():
             features = feature_mapper(img)
-            (rpn_class, _) = rpn(features)
-            boxes, _ = rpn_to_roi(rpn_class, _)
+            (rpn_class, regr) = rpn(features)
+            boxes, _ = rpn_to_roi(rpn_class, regr)
             classification_logits = classifier(features, boxes)
 
             localization_logits = tf.reshape(rpn_class, [-1])
