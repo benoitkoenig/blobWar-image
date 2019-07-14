@@ -11,7 +11,7 @@ statuses = {
 s = anchor_size // 2
 
 def get_localization_data(picture_data):
-    target = np.zeros((feature_size, feature_size, 1), dtype=np.int)
+    target = np.zeros((feature_size, feature_size), dtype=np.int)
     all_blobs = picture_data["army"] + picture_data["enemy"]
     blob_ids = [j for j, b in enumerate(all_blobs) if (b["alive"] == True)]
     for blob_id in blob_ids:
