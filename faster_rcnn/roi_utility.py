@@ -38,12 +38,13 @@ def non_max_suppression_fast(boxes, probs):
 		ids_to_delete = np.where(overlap > overlap_thresh)[0]
 		ids_sorted = np.delete(ids_sorted, ids_to_delete)
 
-	picked_boxes = boxes[picked_box_ids].astype("int") # investigate if astype("int") is necessary here
+	picked_boxes = boxes[picked_box_ids].astype("int")
 	picked_probs = probs[picked_box_ids]
 
 	return picked_boxes, picked_probs
 
 def rpn_to_roi(rpn_input, regr_layer):
+	# In this case, we only need one anchor and one anchor size. But faster-rcnn can use many
 	anchor_sizes = [s]
 	anchor_ratios = [[1, 1]]
 
