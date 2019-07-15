@@ -24,25 +24,21 @@ def get_img(img_path):
     img = 1 - img/255. # We would rather have the whole white void area be full of zeros than ones
     return img
 
-def get_labels_boxes(boxes, target, data_index): # TODO: remove data_index once we're done
+def get_labels_boxes(boxes, target):
     labels_boxes = []
-    to_print = []
-    for j in range(len(boxes)):
-        b = boxes[j]
+    for b in boxes:
         x1 = b[0]
         y1 = b[1]
         x2 = b[2]
         y2 = b[3]
-        t = np.reshape(target[x1:x2, y1:y2], (-1))
+        t = np.reshape(target[y1:y2, x1:x2], (-1))
         t = np.delete(t, np.where(t == 0))
-        to_print.append(len(t))
         if (len(t) == 0):
             labels_boxes.append(0)
         else:
             (classes, occurences) = np.unique(t, return_counts=True)
             k = np.argmax(occurences)
             labels_boxes.append(classes[k])
-    print(data_index, to_print)
     return labels_boxes
 
 def train():
@@ -67,18 +63,18 @@ def train():
         def get_loss():
             features = feature_mapper(img)
             (rpn_class, regr) = rpn(features)
-            boxes, _ = rpn_to_roi(rpn_class, regr)
+            boxes, probs = rpn_to_roi(rpn_class, regr)
             classification_logits = classifier(features, boxes)
 
-            labels_boxes = get_labels_boxes(boxes, target, data_index) # Remove data_index once we're done
+            labels_boxes = get_labels_boxes(boxes, target)
 
             localization_loss = get_localization_loss(rpn_class, target)
             regr_loss = get_regression_loss(regr, regresion_map)
-            classification_loss = get_classification_loss(classification_logits, labels_boxes)
+            classification_loss = get_classification_loss(classification_logits, labels_boxes, probs)
 
             save_data(data_index, raw_data, boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes)
 
-            return localization_loss + regr_loss + classification_loss
+            return localization_loss + classification_loss # + regr_loss
 
         opt.minimize(get_loss)
 

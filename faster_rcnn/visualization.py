@@ -49,7 +49,7 @@ plt.figure(figsize=(18, 12))
 # Prob of label tail
 for i in range(10):
     j = i + 1
-    all_probs_per_label = get_n_probs_per_label(df.tail(10000 * j).head(10000))
+    all_probs_per_label = get_n_probs_per_label(df.tail(500 * j).head(500))
     plt.subplot(5, 2, j)
     probs_per_label = []
     for k in range(7):

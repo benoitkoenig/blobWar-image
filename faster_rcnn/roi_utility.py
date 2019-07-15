@@ -4,7 +4,6 @@ import tensorflow as tf
 from constants import overlap_thresh, max_boxes, anchor_size as s
 
 # Most of this file comes from https://github.com/kbardool/keras-frcnn/blob/master/keras_frcnn/roi_helpers.py
-# Probably a lot of transpositions are not necessary. I need to investigate this
 
 def non_max_suppression_fast(boxes, probs):
 	x1 = boxes[:, 0]
@@ -111,7 +110,7 @@ def rpn_to_roi(rpn_input, regr_layer):
 			A[2, :, :, curr_layer] = anchor_x
 			A[3, :, :, curr_layer] = anchor_y
 
-			A[:, :, :, curr_layer] = apply_regr(A[:, :, :, curr_layer], regr)
+			# A[:, :, :, curr_layer] = apply_regr(A[:, :, :, curr_layer], regr)
 
 			A[2, :, :, curr_layer] += A[0, :, :, curr_layer]
 			A[3, :, :, curr_layer] += A[1, :, :, curr_layer]
