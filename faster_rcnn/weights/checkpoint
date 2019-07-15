@@ -1,2 +1,2 @@
-model_checkpoint_path: "classifier"
-all_model_checkpoint_paths: "classifier"
+model_checkpoint_path: "regr"
+all_model_checkpoint_paths: "regr"

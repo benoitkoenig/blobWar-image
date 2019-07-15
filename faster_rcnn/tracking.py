@@ -1,14 +1,14 @@
 import datetime
 import pandas as pd
 
-columns = ["datetime", "index", "state_data", "boxes", "classification_logits", "label_boxes"]
+columns = ["datetime", "index", "state_data", "boxes", "classification_logits", "label_boxes", "no_regr_surface_precision", "final_surface_precision"]
 file_path = "tracking/training_data.csv"
 
 def reset_data():
     df = pd.DataFrame({}, columns=columns)
     df.to_csv(file_path, header=True, index=False)
 
-def save_data(index, state_data, boxes, classification_logits, label_boxes):
+def save_data(index, state_data, boxes, classification_logits, label_boxes, no_regr_surface_precision, final_surface_precision):
     df = pd.DataFrame({
         "datetime": [datetime.datetime.now()],
         "index": [index],
@@ -16,6 +16,8 @@ def save_data(index, state_data, boxes, classification_logits, label_boxes):
         "boxes": [boxes],
         "classification_logits": [classification_logits],
         "label_boxes": [label_boxes],
+        "no_regr_surface_precision": [no_regr_surface_precision],
+        "final_surface_precision": [final_surface_precision],
     }, columns=columns)
     df.to_csv(file_path, mode="a", header=False, index=False)
 
