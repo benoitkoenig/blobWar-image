@@ -63,6 +63,11 @@ def get_boxes_precision(boxes, regression_values, target):
         y1 = int(round(final_box_center_y - final_box_h / 2))
         y2 = int(round(final_box_center_y + final_box_h / 2))
 
+        x1 = max(x1, 0)
+        x2 = min(x2, feature_size - 1)
+        y1 = max(y1, 0)
+        y2 = min(y2, feature_size - 1)
+
         t = np.reshape(target[y1:y2, x1:x2], (-1))
         total_area = len(t)
         t = np.delete(t, np.where(t == 0))

@@ -34,33 +34,17 @@ def get_n_probs_per_label(df):
     outputs.append(outputs)
     return outputs
 
-def get_coverage_distribution(df):
-    no_regr_output = []
-    final_output = []
-    def handle_row(row):
-        no_regr_precision = eval(row["no_regr_surface_precision"])[0]
-        final_precision = eval(row["final_surface_precision"])[0]
-        no_regr_output.append(no_regr_precision[0])
-        final_output.append(final_precision[0])
-    df.apply(handle_row, axis=1)
-    return no_regr_output, final_output
-
 def get_precision_distribution(df):
-    no_regr_output = []
-    final_output = []
+    outputs = [[[], []], [[], []]]
     def handle_row(row):
         no_regr_precision = eval(row["no_regr_surface_precision"])[0]
         final_precision = eval(row["final_surface_precision"])[0]
-        if (no_regr_precision[1] == 0):
-            no_regr_output.append(0)
-        else:
-            no_regr_output.append(no_regr_precision[0] / no_regr_precision[1])
-        if (final_precision[1] == 0):
-            final_output.append(0)
-        else:
-            final_output.append(final_precision[0] / final_precision[1])
+        outputs[0][0].append(no_regr_precision[0] / no_regr_precision[1])
+        outputs[0][1].append(final_precision[0] / final_precision[1])
+        outputs[1][0].append(no_regr_precision[0])
+        outputs[1][1].append(final_precision[0])
     df.apply(handle_row, axis=1)
-    return no_regr_output, final_output
+    return outputs
 
 #########################################
 # Initializing dataframes and variables #
@@ -113,9 +97,11 @@ plt.figure(figsize=(18, 12))
 for i in range(5):
     j = i + 1
 
+    sub_df = df.tail(500 * j).head(500)
+    data = get_precision_distribution(sub_df)
+
     plt.subplot(5, 2, 2 * i + 1)
-    no_regr_precision, final_precision = get_precision_distribution(df.tail(1000 * j).head(1000))
-    parts = plt.violinplot([no_regr_precision, final_precision])
+    parts = plt.violinplot(data[0])
     plt.xticks([1, 2], ["No Regr", "Final"])
     plt.ylim(0., 1.)
     for pc in parts["bodies"]:
@@ -126,8 +112,7 @@ for i in range(5):
     plt.title("Precision density {}".format(i))
 
     plt.subplot(5, 2, 2 * i + 2)
-    no_regr_coverage, final_coverage = get_coverage_distribution(df.tail(1000 * j).head(1000))
-    parts = plt.violinplot([no_regr_coverage, final_coverage])
+    parts = plt.violinplot(data[1])
     plt.xticks([1, 2], ["No Regr", "Final"])
     for pc in parts["bodies"]:
         pc.set_alpha(1)
