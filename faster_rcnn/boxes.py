@@ -1,9 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from constants import overlap_thresh, max_boxes, anchor_size as s
-
-# Most of this file comes from https://github.com/kbardool/keras-frcnn/blob/master/keras_frcnn/roi_helpers.py
+from constants import overlap_thresh, max_boxes, anchor_size as s, feature_size
 
 def non_max_suppression_fast(boxes, probs):
 	x1 = boxes[:, 0]
@@ -45,7 +43,7 @@ def non_max_suppression_fast(boxes, probs):
 
 	return picked_boxes, picked_probs
 
-def rpn_to_roi(rpn_input):
+def get_boxes(rpn_input):
 	# In this case, we only need one anchor and one anchor size. But faster-rcnn can use many
 	anchor_sizes = [s]
 	anchor_ratios = [[1, 1]]
@@ -80,3 +78,53 @@ def rpn_to_roi(rpn_input):
 	boxes, probs = non_max_suppression_fast(all_boxes, all_probs)
 
 	return boxes, probs
+
+def get_labels_boxes(boxes, target):
+    labels_boxes = []
+    for b in boxes:
+        x1 = b[0]
+        y1 = b[1]
+        x2 = b[2]
+        y2 = b[3]
+        t = np.reshape(target[y1:y2, x1:x2], (-1))
+        t = np.delete(t, np.where(t == 0))
+        if (len(t) == 0):
+            labels_boxes.append(0)
+        else:
+            (classes, occurences) = np.unique(t, return_counts=True)
+            k = np.argmax(occurences)
+            labels_boxes.append(classes[k])
+    return labels_boxes
+
+def get_boxes_precision(boxes, regression_values, target):
+    precision = []
+    for i in range(len(boxes)):
+        b = boxes[i]
+        regr = regression_values[i]
+
+        box_center_x = (b[2] + b[0]) / 2
+        box_center_y = (b[3] + b[1]) / 2
+        box_w = b[2] - b[0]
+        box_h = b[3] - b[1]
+
+        final_box_center_x = box_center_x + regr[0]
+        final_box_center_y = box_center_y + regr[1]
+        final_box_w = box_w + regr[2] # This is not the right correction for proper faster-rcnn
+        final_box_h = box_h + regr[3] # But it is better suited to our case
+
+        x1 = int(round(final_box_center_x - final_box_w / 2))
+        x2 = int(round(final_box_center_x + final_box_w / 2))
+        y1 = int(round(final_box_center_y - final_box_h / 2))
+        y2 = int(round(final_box_center_y + final_box_h / 2))
+
+        x1 = max(x1, 0)
+        x2 = min(x2, feature_size - 1)
+        y1 = max(y1, 0)
+        y2 = min(y2, feature_size - 1)
+
+        t = np.reshape(target[y1:y2, x1:x2], (-1))
+        total_area = len(t)
+        t = np.delete(t, np.where(t == 0))
+        non_zero_area = len(t)
+        precision.append([non_zero_area, total_area])
+    return precision
