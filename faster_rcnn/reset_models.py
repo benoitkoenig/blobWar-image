@@ -18,7 +18,7 @@ def reset_models():
     random_boxes = [[0, 0, 2, 2]]
 
     _ = feature_mapper(random_image)
-    (_, _) = rpn(random_features)
+    _ = rpn(random_features)
     _ = classifier(random_features, random_boxes)
 
     feature_mapper.save_weights("./weights/feature_mapper")

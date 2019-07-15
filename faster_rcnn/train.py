@@ -11,7 +11,7 @@ tf.enable_eager_execution()
 from classifier import Classifier
 from constants import image_size, nb_class, feature_size
 from feature_mapper import FeatureMapper
-from losses import get_localization_loss, get_regression_loss, get_classification_loss
+from losses import get_localization_loss, get_classification_loss
 from preprocess import get_localization_data
 from roi_utility import rpn_to_roi
 from rpn import Rpn
@@ -56,25 +56,24 @@ def train():
     data_index = 0
     while str(data_index) in data:
         raw_data = data[str(data_index)]
-        target, regresion_map = get_localization_data(raw_data)
+        target = get_localization_data(raw_data)
         img = get_img("../pictures/pictures_classification_train/{}.png".format(data_index))
         img = tf.convert_to_tensor([img])
 
         def get_loss():
             features = feature_mapper(img)
-            (rpn_class, regr) = rpn(features)
-            boxes, probs = rpn_to_roi(rpn_class, regr)
+            rpn_class = rpn(features)
+            boxes, probs = rpn_to_roi(rpn_class)
             classification_logits = classifier(features, boxes)
 
             labels_boxes = get_labels_boxes(boxes, target)
 
             localization_loss = get_localization_loss(rpn_class, target)
-            regr_loss = get_regression_loss(regr, regresion_map)
             classification_loss = get_classification_loss(classification_logits, labels_boxes, probs)
 
             save_data(data_index, raw_data, boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes)
 
-            return localization_loss + classification_loss # + regr_loss
+            return localization_loss + classification_loss
 
         opt.minimize(get_loss)
 

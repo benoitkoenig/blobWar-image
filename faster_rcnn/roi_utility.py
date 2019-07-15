@@ -45,42 +45,7 @@ def non_max_suppression_fast(boxes, probs):
 
 	return picked_boxes, picked_probs
 
-def apply_regr(X, T):
-	x = X[0, :, :]
-	y = X[1, :, :]
-	w = X[2, :, :]
-	h = X[3, :, :]
-
-	tx = T[0, :, :]
-	ty = T[1, :, :]
-	tw = T[2, :, :]
-	th = T[3, :, :]
-
-	cx = x + w/2.
-	cy = y + h/2.
-	cx1 = tx * w + cx
-	cy1 = ty * h + cy
-
-	w1 = np.exp(tw.astype(np.float64)) * w
-	h1 = np.exp(th.astype(np.float64)) * h
-	x1 = cx1 - w1/2.
-	y1 = cy1 - h1/2.
-
-	x1 = np.round(x1)
-	y1 = np.round(y1)
-	w1 = np.round(w1)
-	h1 = np.round(h1)
-	return np.stack([x1, y1, w1, h1])
-
-def remove_invalid_boxes(boxes, probs):
-	x1 = boxes[:, 0]
-	y1 = boxes[:, 1]
-	x2 = boxes[:, 2]
-	y2 = boxes[:, 3]
-	invalid_ids = np.where((x1 - x2 >= 0) | (y1 - y2 >= 0))
-	return np.delete(boxes, invalid_ids, 0), np.delete(probs, invalid_ids, 0)
-
-def rpn_to_roi(rpn_input, regr_layer):
+def rpn_to_roi(rpn_input):
 	# In this case, we only need one anchor and one anchor size. But faster-rcnn can use many
 	anchor_sizes = [s]
 	anchor_ratios = [[1, 1]]
@@ -97,35 +62,21 @@ def rpn_to_roi(rpn_input, regr_layer):
 
 	for anchor_size in anchor_sizes:
 		for anchor_ratio in anchor_ratios:
-
 			anchor_x = (anchor_size * anchor_ratio[0])
 			anchor_y = (anchor_size * anchor_ratio[1])
-			regr = regr_layer[0, :, :, 4 * curr_layer:4 * curr_layer + 4]
-			regr = np.transpose(regr, (2, 0, 1))
 
 			X, Y = np.meshgrid(np.arange(cols), np.arange(rows))
 
-			A[0, :, :, curr_layer] = X - anchor_x//2
-			A[1, :, :, curr_layer] = Y - anchor_y//2
-			A[2, :, :, curr_layer] = anchor_x
-			A[3, :, :, curr_layer] = anchor_y
-
-			# A[:, :, :, curr_layer] = apply_regr(A[:, :, :, curr_layer], regr)
-
-			A[2, :, :, curr_layer] += A[0, :, :, curr_layer]
-			A[3, :, :, curr_layer] += A[1, :, :, curr_layer]
-
-			A[0, :, :, curr_layer] = np.maximum(A[0, :, :, curr_layer], 0)
-			A[1, :, :, curr_layer] = np.maximum(A[1, :, :, curr_layer], 0)
-			A[2, :, :, curr_layer] = np.minimum(A[2, :, :, curr_layer], cols-1)
-			A[3, :, :, curr_layer] = np.minimum(A[3, :, :, curr_layer], rows-1)
+			A[0, :, :, curr_layer] = np.maximum(X - anchor_x//2, 0)
+			A[1, :, :, curr_layer] = np.maximum(Y - anchor_y//2, 0)
+			A[2, :, :, curr_layer] = np.minimum(X + anchor_x//2, cols-1)
+			A[3, :, :, curr_layer] = np.minimum(Y + anchor_y//2, rows-1)
 
 			curr_layer += 1
 
 	all_boxes = np.reshape(A.transpose((0, 3, 1, 2)), (4, -1)).transpose((1, 0))
 	all_probs = np.reshape(rpn_layer.transpose((0, 3, 1, 2)), (-1))
 
-	boxes, probs = remove_invalid_boxes(all_boxes, all_probs)
-	boxes, probs = non_max_suppression_fast(boxes, probs)
+	boxes, probs = non_max_suppression_fast(all_boxes, all_probs)
 
 	return boxes, probs
