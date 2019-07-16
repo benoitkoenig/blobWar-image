@@ -2,7 +2,7 @@ import json
 import numpy as np
 import tensorflow as tf
 from tensorflow.nn import sigmoid_cross_entropy_with_logits, sparse_softmax_cross_entropy_with_logits
-from tensorflow.train import AdamOptimizer
+from tensorflow.keras.optimizers import Adam
 
 tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
@@ -30,7 +30,7 @@ def train():
     classifier.load_weights("./weights/classifier")
     regr.load_weights("./weights/regr")
 
-    opt = AdamOptimizer(5e-5)
+    opt = Adam(learning_rate=5e-5)
     with open("../data/data_detect_local_evaluate_10000.json") as json_file:
         data = json.load(json_file)
     data_index = 0
@@ -61,7 +61,10 @@ def train():
 
             return localization_loss + classification_loss + regression_loss
 
-        opt.minimize(get_loss)
+        opt.minimize(
+            get_loss,
+            [feature_mapper.trainable_weights, rpn.trainable_weights, classifier.trainable_weights, regr.trainable_weights],
+        )
 
         data_index += 1
         if (data_index % 100 == 99):
