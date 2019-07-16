@@ -15,6 +15,7 @@ from feature_mapper import FeatureMapper
 from losses import get_localization_loss, get_classification_loss, get_regression_loss
 from preprocess import get_localization_data
 from regr import Regr
+from roi_pooling import RoiPooling
 from rpn import Rpn
 from tracking import save_data
 
@@ -29,6 +30,7 @@ def get_img(img_path):
 def train():
     feature_mapper = FeatureMapper()
     rpn = Rpn()
+    roi_pooling = RoiPooling()
     classifier = Classifier()
     regr = Regr()
 
@@ -49,10 +51,12 @@ def train():
         def get_loss():
             features = feature_mapper(img)
             rpn_map = rpn(features)
-            boxes, probs = get_boxes(rpn_map)
 
-            classification_logits = classifier(features, boxes)
-            regression_values = regr(features, boxes)
+            boxes, probs = get_boxes(rpn_map)
+            feature_areas = roi_pooling(features, boxes)
+
+            classification_logits = classifier(feature_areas)
+            regression_values = regr(feature_areas)
 
             labels_boxes = get_labels_boxes(boxes, target)
 

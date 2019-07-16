@@ -17,12 +17,12 @@ def reset_models():
 
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
     random_features = tf.convert_to_tensor(np.random.random((1, feature_size, feature_size, 16)), dtype=np.float32)
-    random_boxes = [[0, 0, 2, 2]]
+    random_feature_areas = [tf.convert_to_tensor(np.random.random((1, anchor_size, anchor_size, 16)), dtype=np.float32)]
 
     _ = feature_mapper(random_image)
     _ = rpn(random_features)
-    _ = classifier(random_features, random_boxes)
-    _ = regr(random_features, random_boxes)
+    _ = classifier(random_feature_areas)
+    _ = regr(random_feature_areas)
 
     feature_mapper.save_weights("./weights/feature_mapper")
     rpn.save_weights("./weights/rpn")

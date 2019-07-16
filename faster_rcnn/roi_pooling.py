@@ -1,9 +1,9 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Layer
+from tensorflow.keras import Model
 
 from constants import anchor_size, feature_size
 
-class RoiPooling(Layer):
+class RoiPooling(Model):
     def call(self, features_map, boxes):
         output = []
         for box in boxes:
