@@ -62,7 +62,7 @@ def evaluate():
         estimates = []
         for i in range(len(boxes)):
             if probs[i] > .9:
-                box = get_final_box(boxes[i], regression_values[i])
+                box = get_final_box(boxes[i], regression_values[i], limit_border=False)
                 classification_probs = tf.nn.softmax(classification_logits[i]).numpy()
                 match = []
                 for i, t_blob in enumerate(all_blobs):

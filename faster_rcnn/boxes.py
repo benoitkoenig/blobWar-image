@@ -96,7 +96,7 @@ def get_labels_boxes(boxes, target):
             labels_boxes.append(classes[k])
     return labels_boxes
 
-def get_final_box(b, regr):
+def get_final_box(b, regr, limit_border=True):
 	box_center_x = (b[2] + b[0]) / 2
 	box_center_y = (b[3] + b[1]) / 2
 	box_w = b[2] - b[0]
@@ -112,10 +112,12 @@ def get_final_box(b, regr):
 	y1 = int(round(final_box_center_y - final_box_h / 2))
 	y2 = int(round(final_box_center_y + final_box_h / 2))
 
-	x1 = max(x1, 0)
-	x2 = min(x2, feature_size)
-	y1 = max(y1, 0)
-	y2 = min(y2, feature_size)
+	# Evalutation is based on the center of the box, in which case we do not want to limit the border
+	if (limit_border):
+		x1 = max(x1, 0)
+		x2 = min(x2, feature_size)
+		y1 = max(y1, 0)
+		y2 = min(y2, feature_size)
 
 	return x1, y1, x2, y2
 
