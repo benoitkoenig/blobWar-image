@@ -79,12 +79,10 @@ def evaluate():
                 estimates.append(match)
 
         output = []
-        while(len(estimates) != 0):
+        while (len(estimates) != 0) & (np.max(estimates + [0]) > .2): # The + [0] is to avoid an error when estimates is empty
             best_match = np.argmax(estimates)
             predicted_blob = best_match // 6
             target_blob = best_match % 6
-            if (estimates[predicted_blob][target_blob] == 0):
-                break
             output.append(estimates[predicted_blob][target_blob])
             estimates.pop(predicted_blob)
             for match in estimates:
@@ -93,7 +91,10 @@ def evaluate():
         alive_blobs = len([1 for b in all_blobs if b["alive"] == True])
         blobs_count_difference = alive_blobs - len(output)
 
-        picture_match = sum(output) / len(output)
+        if len(output) == 0:
+            picture_match = 0.
+        else:
+            picture_match = sum(output) / len(output)
 
         print("\n>>>>>> {}".format(data_index))
         print("{} blobs matching".format(len(output)))
