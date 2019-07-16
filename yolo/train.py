@@ -6,7 +6,7 @@ from tensorflow.io import read_file
 from tensorflow.nn import sigmoid_cross_entropy_with_logits, sparse_softmax_cross_entropy_with_logits
 from tensorflow.train import AdamOptimizer
 
-tf.enable_eager_execution()
+tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 np.set_printoptions(threshold=10000)
 
 from constants import image_size, nb_class, feature_size

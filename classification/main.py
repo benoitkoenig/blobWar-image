@@ -7,7 +7,7 @@ from tensorflow.io import read_file
 from tensorflow.nn import softmax, sparse_softmax_cross_entropy_with_logits
 from tensorflow.train import AdamOptimizer
 
-tf.enable_eager_execution()
+tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
 from constants import image_size, nb_class
 from classifier import Classifier

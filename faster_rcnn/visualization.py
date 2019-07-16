@@ -5,7 +5,7 @@ import tensorflow as tf
 from constants import nb_class
 from tracking import get_dataframes
 
-tf.enable_eager_execution()
+tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 pd.plotting.register_matplotlib_converters()
 
 ###############################

@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-tf.enable_eager_execution()
+tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
 from constants import image_size
 from feature_mapper import FeatureMapper
