@@ -31,13 +31,13 @@ def train():
     regr.load_weights("./weights/regr")
 
     opt = AdamOptimizer(5e-5)
-    with open("../data/data_detect_local_train.json") as json_file:
+    with open("../data/data_detect_local_evaluate_10000.json") as json_file:
         data = json.load(json_file)
     data_index = 0
     while str(data_index) in data:
         raw_data = data[str(data_index)]
         target, bounding_box_target = get_localization_data(raw_data)
-        img = get_img("../pictures/pictures_detect_local_train/{}.png".format(data_index))
+        img = get_img("../pictures/pictures_detect_local_evaluate_10000/{}.png".format(data_index))
 
         def get_loss():
             features = feature_mapper(img)
