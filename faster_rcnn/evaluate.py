@@ -44,7 +44,7 @@ statuses = {
 }
 
 def evaluate():
-    with open("../data/data_detect_local_evaluate_10000.json") as json_file:
+    with open("../data/data_detect_local_evaluate_100.json") as json_file:
         data = json.load(json_file)
     data_index = 0
 
@@ -53,7 +53,7 @@ def evaluate():
     total_extra_blobs = 0
 
     while str(data_index) in data:
-        img = get_img("../pictures/pictures_detect_local_evaluate_10000/{}.png".format(data_index))
+        img = get_img("../pictures/pictures_detect_local_evaluate_100/{}.png".format(data_index))
         boxes, probs, classification_logits, regression_values = get_prediction(img)
 
         raw_data = data[str(data_index)]
@@ -79,7 +79,9 @@ def evaluate():
                 estimates.append(match)
 
         output = []
-        while (len(estimates) != 0) & (np.max(estimates + [0]) > .2): # The + [0] is to avoid an error when estimates is empty
+        while len(estimates) != 0:
+            if (np.max(estimates) < .2):
+                break
             best_match = np.argmax(estimates)
             predicted_blob = best_match // 6
             target_blob = best_match % 6
@@ -99,7 +101,8 @@ def evaluate():
         print("\n>>>>>> {}".format(data_index))
         print("{} blobs matching".format(len(output)))
         print("{}% average match".format(int(picture_match * 100)))
-        print("Difference nb blobs alive - nb blobs predicted: {}".format(blobs_count_difference))
+        print("{} blobs missed".format(max(0, blobs_count_difference)))
+        print("{} extra predictions".format(max(0, -blobs_count_difference)))
 
         total_match.append(picture_match)
         total_missing_blobs += max(0, blobs_count_difference)
@@ -108,7 +111,7 @@ def evaluate():
         data_index += 1
 
     print("\n\n>>>>>> Summary for {} pictures".format(data_index))
-    print("Average match: {}%".format(int(sum(total_match) / len(total_match)) * 100))
+    print("Average match: {}%".format(int(sum(total_match) / len(total_match) * 100)))
     print("Total missed blobs: {}".format(total_missing_blobs))
     print("Total extra predictions: {}".format(total_extra_blobs))
 
