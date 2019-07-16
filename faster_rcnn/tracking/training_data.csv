@@ -1,1 +1,1 @@
-datetime,index,state_data,boxes,classification_logits,label_boxes,no_regr_surface_precision,final_surface_precision
+datetime,index,state_data,boxes,classification_logits,label_boxes,no_regr_surface_precision,final_surface_precision,boxes_prob

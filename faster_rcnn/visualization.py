@@ -30,7 +30,7 @@ def get_n_probs_per_label(df):
     for n in range(7):
         for i in range(len(outputs[n])):
             if (outputs[n][i] == []):
-                outputs[n][i] = -1.
+                outputs[n][i] = [-1.]
     outputs.append(outputs)
     return outputs
 
@@ -51,74 +51,76 @@ def get_precision_distribution(df):
 #########################################
 
 df = get_dataframes()
+nb_rows = df["index"].count()
+print("Dataframe size: {}".format(nb_rows))
+
+df_tail = df.tail(1000)
+
+all_probs_per_label = get_n_probs_per_label(df_tail)
+precision_data = get_precision_distribution(df_tail)
 
 ############
 # Plotting #
 ############
 
-plt.figure(figsize=(18, 12))
+fig = plt.figure(figsize=(18, 12))
+fig.canvas.set_window_title("Faster-RCNN graph - Last 1000 rows over {} total".format(nb_rows))
 
 # Prob of label tail
-# for i in range(10):
-#     j = i + 1
-#     all_probs_per_label = get_n_probs_per_label(df.tail(500 * j).head(500))
-#     plt.subplot(5, 2, j)
-#     probs_per_label = []
-#     for k in range(7):
-#         probs_per_label.append(all_probs_per_label[k][k])
-#     parts = plt.violinplot(probs_per_label)
-#     plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
-#     plt.ylim(0., 1.)
-#     for pc in parts["bodies"]:
-#         pc.set_alpha(1)
-#     parts["cmins"].set_alpha(0)
-#     parts["cmaxes"].set_alpha(0)
-#     parts["cbars"].set_alpha(0)
-#     plt.title("Label Prob density {}".format(i))
-
-# all_probs_per_label = get_n_probs_per_label(df.tail(10000))
+plt.subplot(5, 2, 1)
+probs_per_label = []
+for k in range(7):
+    probs_per_label.append(all_probs_per_label[k][k])
+parts = plt.violinplot(probs_per_label)
+plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
+plt.ylim(0., 1.)
+for pc in parts["bodies"]:
+    pc.set_alpha(1)
+parts["cmins"].set_alpha(0)
+parts["cmaxes"].set_alpha(0)
+parts["cbars"].set_alpha(0)
+plt.title("Label Prob density")
 
 # Prob of n label tail
-# for i in range(7):
-#     plt.subplot(5, 2, 4 + i)
-#     probs_per_label = all_probs_per_label[i]
-#     parts = plt.violinplot(probs_per_label)
-#     plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
-#     plt.ylim(0., 1.)
-#     for pc in parts["bodies"]:
-#         pc.set_alpha(1)
-#         pc.set_facecolor("#D43F3A")
-#     parts["cmins"].set_alpha(0)
-#     parts["cmaxes"].set_alpha(0)
-#     parts["cbars"].set_alpha(0)
-#     plt.title("Prob density of {}".format(i))
-
-# Precision distribution
-for i in range(5):
-    j = i + 1
-
-    sub_df = df.tail(500 * j).head(500)
-    data = get_precision_distribution(sub_df)
-
-    plt.subplot(5, 2, 2 * i + 1)
-    parts = plt.violinplot(data[0])
-    plt.xticks([1, 2], ["No Regr", "Final"])
+for i in range(7):
+    plt.subplot(5, 2, 2 + i)
+    probs_per_label = all_probs_per_label[i]
+    parts = plt.violinplot(probs_per_label)
+    plt.xticks([1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6])
     plt.ylim(0., 1.)
     for pc in parts["bodies"]:
         pc.set_alpha(1)
+        pc.set_facecolor("#D43F3A")
     parts["cmins"].set_alpha(0)
     parts["cmaxes"].set_alpha(0)
     parts["cbars"].set_alpha(0)
-    plt.title("Precision density {}".format(i))
+    plt.title("Prob density of {}".format(i))
 
-    plt.subplot(5, 2, 2 * i + 2)
-    parts = plt.violinplot(data[1])
-    plt.xticks([1, 2], ["No Regr", "Final"])
-    for pc in parts["bodies"]:
-        pc.set_alpha(1)
-    parts["cmins"].set_alpha(0)
-    parts["cmaxes"].set_alpha(0)
-    parts["cbars"].set_alpha(0)
-    plt.title("Coverage density {}".format(i))
+# Precision distribution
+plt.subplot(5, 2, 9)
+parts = plt.violinplot(precision_data[0])
+plt.xticks([1, 2], ["No Regr", "Final"])
+plt.ylim(0., 1.)
+for pc in parts["bodies"]:
+    pc.set_alpha(1)
+    pc.set_color("#F3C43A")
+parts["cmins"].set_alpha(0)
+parts["cmaxes"].set_alpha(0)
+parts["cbars"].set_alpha(0)
+plt.title("Precision density {}".format(i))
+
+# Coverage distribution
+plt.subplot(5, 2, 10)
+parts = plt.violinplot(precision_data[1])
+plt.xticks([1, 2], ["No Regr", "Final"])
+for pc in parts["bodies"]:
+    pc.set_alpha(1)
+    pc.set_color("#F3C43A")
+parts["cmins"].set_alpha(0)
+parts["cmaxes"].set_alpha(0)
+parts["cbars"].set_alpha(0)
+ax = plt.gca()
+ax.axhline(y=144, color="black")
+plt.title("Coverage density {}".format(i))
 
 plt.show()

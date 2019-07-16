@@ -37,14 +37,14 @@ def train():
     classifier.load_weights("./weights/classifier")
     regr.load_weights("./weights/regr")
 
-    opt = AdamOptimizer(1e-4)
-    with open("../data/data_classification_train.json") as json_file:
+    opt = AdamOptimizer(5e-5)
+    with open("../data/data_detect_local_train.json") as json_file:
         data = json.load(json_file)
     data_index = 0
     while str(data_index) in data:
         raw_data = data[str(data_index)]
         target, bounding_box_target = get_localization_data(raw_data)
-        img = get_img("../pictures/pictures_classification_train/{}.png".format(data_index))
+        img = get_img("../pictures/pictures_detect_local_train/{}.png".format(data_index))
 
         def get_loss():
             features = feature_mapper(img)
@@ -62,7 +62,7 @@ def train():
 
             no_regr_boxes_precision = get_boxes_precision(boxes, np.zeros(regression_values.shape), target)
             final_boxes_precision = get_boxes_precision(boxes, regression_values.numpy(), target)
-            save_data(data_index, raw_data, boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes, no_regr_boxes_precision, final_boxes_precision)
+            save_data(data_index, raw_data, boxes.tolist(), [a.numpy().tolist() for a in classification_logits], labels_boxes, no_regr_boxes_precision, final_boxes_precision, probs.tolist())
 
             return localization_loss + classification_loss + regression_loss
 
