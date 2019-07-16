@@ -13,21 +13,19 @@ def get_localization_loss(rpn_class, target):
     loss = tf.reduce_mean(loss)
     return loss
 
-def get_classification_loss(classification_logits, labels_boxes, probs):
-    classification_loss = sparse_softmax_cross_entropy_with_logits(logits=classification_logits, labels=labels_boxes)
-    classification_loss = tf.multiply(2 * probs ** 5, classification_loss) # First focus on localization - then classification
-    classification_loss = tf.reduce_mean(classification_loss)
-    return classification_loss
+def get_classification_loss(logits, labels_boxes, probs_boxes):
+    loss = sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels_boxes)
+    loss = tf.multiply(2 * probs_boxes ** 5, loss) # First focus on localization - then classification
+    loss = tf.reduce_mean(loss)
+    return loss
 
-def get_regression_loss(values, boxes, bounding_box_target, probs):
+def get_regression_loss(values, boxes, bounding_box_target, probs_boxes):
     # Values contains the predicted values of the regression: x, y, w, h
     # boxes are the boxes x1, y1, x2, y2
     # boxes is a mapping. For an element at position y, x, it has an array with the location of the real bounding box: center_x, center_y, w, h
     target = []
     is_foreground = []
-    for i in range(len(boxes)):
-        b = boxes[i]
-
+    for b in boxes:
         center_x = (b[0] + b[2]) // 2
         center_y = (b[1] + b[3]) // 2
         w = (b[2] - b[0])
@@ -48,8 +46,8 @@ def get_regression_loss(values, boxes, bounding_box_target, probs):
             target_h = t[2] - h
             target.append([target_x, target_y, target_w, target_h])
 
-    probs_formated = [2 * p ** 5 for p in probs]
-    probs_formated = [[p, p, p, p] for p in probs_formated]
+    probs_boxes_formated = [2 * p ** 5 for p in probs_boxes]
+    probs_boxes_formated = [[p, p, p, p] for p in probs_boxes_formated]
 
     target = tf.convert_to_tensor(target, dtype=np.float32)
     x = tf.math.abs(values - target)
@@ -57,6 +55,6 @@ def get_regression_loss(values, boxes, bounding_box_target, probs):
 
     loss = x_below_1 * .5 * tf.math.square(x) + (1 - x_below_1) * (x - .5)
     loss = tf.multiply(is_foreground, loss) # Regression do not apply on background
-    loss = tf.multiply(probs_formated, loss) # First focus on localization - then regression
+    loss = tf.multiply(probs_boxes_formated, loss) # First focus on localization - then regression
     loss = tf.reduce_mean(loss)
     return loss
