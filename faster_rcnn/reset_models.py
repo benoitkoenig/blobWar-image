@@ -16,8 +16,8 @@ def reset_models():
     regr = Regr()
 
     random_image = tf.convert_to_tensor(np.random.random((1, image_size, image_size, 3)), dtype=np.float32)
-    random_features = tf.convert_to_tensor(np.random.random((1, feature_size, feature_size, 16)), dtype=np.float32)
-    random_feature_areas = [tf.convert_to_tensor(np.random.random((1, anchor_size, anchor_size, 16)), dtype=np.float32)]
+    random_features = tf.convert_to_tensor(np.random.random((1, feature_size, feature_size, 12)), dtype=np.float32)
+    random_feature_areas = [tf.convert_to_tensor(np.random.random((1, anchor_size, anchor_size, 12)), dtype=np.float32)]
 
     _ = feature_mapper(random_image)
     _ = rpn(random_features)
