@@ -1,8 +1,6 @@
 import json
 import numpy as np
 import tensorflow as tf
-from tensorflow.image import decode_jpeg, resize
-from tensorflow.io import read_file
 from tensorflow.nn import sigmoid_cross_entropy_with_logits, sparse_softmax_cross_entropy_with_logits
 from tensorflow.train import AdamOptimizer
 
@@ -12,20 +10,13 @@ from boxes import get_boxes, get_boxes_precision, get_labels_boxes
 from classifier import Classifier
 from constants import image_size
 from feature_mapper import FeatureMapper
+from img import get_img
 from losses import get_localization_loss, get_classification_loss, get_regression_loss
 from preprocess import get_localization_data
 from regr import Regr
 from roi_pooling import RoiPooling
 from rpn import Rpn
 from tracking import save_data
-
-def get_img(img_path):
-    img = read_file(img_path)
-    img = decode_jpeg(img, channels=3)
-    img = resize(img, [image_size, image_size])
-    img = 1 - img/255. # We would rather have the whole white void area be full of zeros than ones
-    img = tf.convert_to_tensor([img])
-    return img
 
 def train():
     feature_mapper = FeatureMapper()

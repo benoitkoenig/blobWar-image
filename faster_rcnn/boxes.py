@@ -96,35 +96,36 @@ def get_labels_boxes(boxes, target):
             labels_boxes.append(classes[k])
     return labels_boxes
 
+def get_final_box(b, regr):
+	box_center_x = (b[2] + b[0]) / 2
+	box_center_y = (b[3] + b[1]) / 2
+	box_w = b[2] - b[0]
+	box_h = b[3] - b[1]
+
+	final_box_center_x = box_center_x + regr[0]
+	final_box_center_y = box_center_y + regr[1]
+	final_box_w = box_w + regr[2] # This is not the right correction for proper faster-rcnn
+	final_box_h = box_h + regr[3] # But it is better suited to our case
+
+	x1 = int(round(final_box_center_x - final_box_w / 2))
+	x2 = int(round(final_box_center_x + final_box_w / 2))
+	y1 = int(round(final_box_center_y - final_box_h / 2))
+	y2 = int(round(final_box_center_y + final_box_h / 2))
+
+	x1 = max(x1, 0)
+	x2 = min(x2, feature_size - 1)
+	y1 = max(y1, 0)
+	y2 = min(y2, feature_size - 1)
+
+	return x1, y1, x2, y2
+
 def get_boxes_precision(boxes, regression_values, target):
-    precision = []
-    for i in range(len(boxes)):
-        b = boxes[i]
-        regr = regression_values[i]
-
-        box_center_x = (b[2] + b[0]) / 2
-        box_center_y = (b[3] + b[1]) / 2
-        box_w = b[2] - b[0]
-        box_h = b[3] - b[1]
-
-        final_box_center_x = box_center_x + regr[0]
-        final_box_center_y = box_center_y + regr[1]
-        final_box_w = box_w + regr[2] # This is not the right correction for proper faster-rcnn
-        final_box_h = box_h + regr[3] # But it is better suited to our case
-
-        x1 = int(round(final_box_center_x - final_box_w / 2))
-        x2 = int(round(final_box_center_x + final_box_w / 2))
-        y1 = int(round(final_box_center_y - final_box_h / 2))
-        y2 = int(round(final_box_center_y + final_box_h / 2))
-
-        x1 = max(x1, 0)
-        x2 = min(x2, feature_size - 1)
-        y1 = max(y1, 0)
-        y2 = min(y2, feature_size - 1)
-
-        t = np.reshape(target[y1:y2, x1:x2], (-1))
-        total_area = len(t)
-        t = np.delete(t, np.where(t == 0))
-        non_zero_area = len(t)
-        precision.append([non_zero_area, total_area])
-    return precision
+	precision = []
+	for i in range(len(boxes)):
+		x1, y1, x2, y2 = get_final_box(boxes[i], regression_values[i])
+		t = np.reshape(target[y1:y2, x1:x2], (-1))
+		total_area = len(t)
+		t = np.delete(t, np.where(t == 0))
+		non_zero_area = len(t)
+		precision.append([non_zero_area, total_area])
+	return precision
