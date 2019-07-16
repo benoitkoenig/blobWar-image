@@ -68,8 +68,8 @@ def evaluate():
                 for i, t_blob in enumerate(all_blobs):
                     c_x = (box[0] + box[2]) / (2 * feature_size)
                     c_y = (box[1] + box[3]) / (2 * feature_size)
-                    t_x = t_blob["x"] # TODO: I do not not how to include the position between 31 and 32
-                    t_y = t_blob["y"] # I think the all code misses +1 on the upper limit
+                    t_x = t_blob["x"]
+                    t_y = t_blob["y"]
                     m = int(t_blob["alive"])
                     distance = math.sqrt((c_x - t_x) ** 2 + (c_y - t_y) ** 2)
                     m = m / (1 + distance)

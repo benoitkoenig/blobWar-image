@@ -67,8 +67,8 @@ def get_boxes(rpn_input):
 
 			A[0, :, :, curr_layer] = np.maximum(X - anchor_x//2, 0)
 			A[1, :, :, curr_layer] = np.maximum(Y - anchor_y//2, 0)
-			A[2, :, :, curr_layer] = np.minimum(X + anchor_x//2, cols-1)
-			A[3, :, :, curr_layer] = np.minimum(Y + anchor_y//2, rows-1)
+			A[2, :, :, curr_layer] = np.minimum(X + anchor_x//2, cols) # The upper border can be equal to cols/row,
+			A[3, :, :, curr_layer] = np.minimum(Y + anchor_y//2, rows) # in which case the box reaches the border of the mapping
 
 			curr_layer += 1
 
@@ -113,9 +113,9 @@ def get_final_box(b, regr):
 	y2 = int(round(final_box_center_y + final_box_h / 2))
 
 	x1 = max(x1, 0)
-	x2 = min(x2, feature_size - 1)
+	x2 = min(x2, feature_size)
 	y1 = max(y1, 0)
-	y2 = min(y2, feature_size - 1)
+	y2 = min(y2, feature_size)
 
 	return x1, y1, x2, y2
 
