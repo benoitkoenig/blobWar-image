@@ -1,14 +1,12 @@
 import json
 import numpy as np
 import tensorflow as tf
-from tensorflow.nn import sigmoid_cross_entropy_with_logits, sparse_softmax_cross_entropy_with_logits
 from tensorflow.keras.optimizers import Adam
 
 tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
 from boxes import get_boxes, get_boxes_precision, get_labels_boxes
 from classifier import Classifier
-from constants import image_size
 from feature_mapper import FeatureMapper
 from img import get_img
 from losses import get_localization_loss, get_classification_loss, get_regression_loss
