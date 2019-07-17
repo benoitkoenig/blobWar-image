@@ -1,2 +1,2 @@
-model_checkpoint_path: "feature_mapper"
-all_model_checkpoint_paths: "feature_mapper"
+model_checkpoint_path: "yolo"
+all_model_checkpoint_paths: "yolo"
