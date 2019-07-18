@@ -67,7 +67,6 @@ def get_boxes(preds):
     boxes = non_max_suppression_fast(boxes)
 
     boxes = boxes[:6]
-    print(boxes)
     output = []
 
     for b in boxes:

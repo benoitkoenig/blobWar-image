@@ -6,7 +6,6 @@ from tensorflow.losses import huber_loss
 from constants import nb_class, feature_size
 
 def smooth_L1_loss(pred, target):
-    # target = tf.convert_to_tensor(target, dtype=np.float32)
     x = tf.math.abs(pred - target)
     x_below_1 =  tf.cast(x < 1, dtype=tf.float32)
 

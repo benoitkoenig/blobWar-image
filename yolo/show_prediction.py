@@ -35,22 +35,17 @@ labels_name = [
 def show(id, img_path, boxes):
     fig = plt.figure(figsize=(6, 6))
     fig.canvas.set_window_title("YOLO: review image {}".format(id))
-
-    #add axes to the image
     ax = fig.add_axes([0,0,1,1])
-
-    # read and plot the image
     image = plt.imread(img_path)
     plt.imshow(image)
 
-    # iterating over the image for different objects
     for b in boxes:
         width = b["width"]
         height = b["height"]
         x = b["x"] - width / 2
         y = b["y"] - height / 2
         edgecolor = labels_colors[b["label"]]
-        ax.annotate(labels_name[b["label"]], xy=(x + width - 40, y + 20))
+        ax.annotate(labels_name[b["label"]], xy=(x, y + height + 20))
         rect = patches.Rectangle((x,y), width, height, edgecolor=edgecolor, facecolor='none')        
         ax.add_patch(rect)
 
