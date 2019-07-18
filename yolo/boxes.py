@@ -2,28 +2,37 @@ import numpy as np
 
 from constants import feature_size, nb_class, real_image_size
 
-def get_boxes(tf_preds):
-    preds = tf_preds.numpy()
-    boxes = preds[:, :, :, 4]
-    probs = np.reshape(preds[:, :, :, 4], (-1))
+def get_final_coords(boxes_input):
+    boxes = np.copy(boxes_input)
+    for i in range(feature_size):
+        for j in range(feature_size):
+            boxes[0, i, j][0] += j
+            boxes[0, i, j][1] += i
+            boxes[0, i, j][2] += j
+            boxes[0, i, j][3] += i
+    return boxes
+
+def get_boxes(preds):
+    boxes = preds.numpy()
+    boxes = get_final_coords(boxes)
+    boxes = boxes.reshape((-1, 5 + nb_class))
+
+    probs = np.reshape(boxes[:, 4], (-1))
     sorted_boxes_ids = np.argsort(-1 * probs)
+    boxes = boxes[sorted_boxes_ids]
 
-    sorted_boxes_ids = sorted_boxes_ids[:6]
-    boxes = []
+    boxes = boxes[:6]
+    output = []
 
-    for id in sorted_boxes_ids:
-        x_tile = id % feature_size
-        y_tile = id // feature_size
+    for b in boxes:
+        label = np.argmax(b[5:5+nb_class] - 5)
+        xmin = b[0]
+        ymin = b[1]
+        xmax = b[2]
+        ymax = b[3]
 
-        label = np.argmax(preds[0, y_tile, x_tile, 5:5+nb_class])
-
-        xmin = preds[0, y_tile, x_tile, 0]
-        ymin = preds[0, y_tile, x_tile, 1]
-        xmax = preds[0, y_tile, x_tile, 2]
-        ymax = preds[0, y_tile, x_tile, 3]
-
-        x = x_tile + (xmin + xmax) / 2
-        y = y_tile + (ymin + ymax) / 2
+        x = (xmin + xmax) / 2
+        y = (ymin + ymax) / 2
         width = xmax - xmin
         height = ymax - ymin
         box = {
@@ -33,6 +42,6 @@ def get_boxes(tf_preds):
             "height": height * real_image_size[1] / feature_size,
             "label": label,
         }
-        boxes.append(box)
+        output.append(box)
 
-    return boxes
+    return output
