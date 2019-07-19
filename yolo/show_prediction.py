@@ -77,5 +77,3 @@ if (index == None):
     print("Usage: python show_prediction.py [0-99]")
 else:
     show_prediction(str(index))
-
-
