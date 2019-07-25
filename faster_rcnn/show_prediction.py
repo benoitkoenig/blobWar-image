@@ -13,6 +13,7 @@ from classifier import Classifier
 from constants import feature_size, real_image_height, real_image_width
 from feature_mapper import FeatureMapper
 from img import get_img
+from prediction import get_prediction
 from regr import Regr
 from roi_pooling import RoiPooling
 from rpn import Rpn
@@ -49,9 +50,8 @@ labels_name = [
 ]
 
 def show(id, img_path, boxes):
-    print(boxes)
     fig = plt.figure(figsize=(6, 6))
-    fig.canvas.set_window_title("YOLO: review image {}".format(id))
+    fig.canvas.set_window_title("Faster-RCNN: review image {}".format(id))
     ax = fig.add_axes([0,0,1,1])
     image = plt.imread(img_path)
     plt.imshow(image)
@@ -63,18 +63,6 @@ def show(id, img_path, boxes):
         ax.add_patch(rect)
 
     plt.show()
-
-def get_prediction(img):
-    features = feature_mapper(img)
-    rpn_map = rpn(features)
-
-    boxes, probs = get_boxes(rpn_map)
-    feature_areas = roi_pooling(features, boxes)
-
-    classification_logits = classifier(feature_areas)
-    regression_values = regr(feature_areas)
-
-    return boxes, probs, classification_logits.numpy(), regression_values.numpy()
 
 def show_prediction(data_index):
     img_path = "../pictures/pictures_detect_local_evaluate_100/{}.png".format(data_index)
