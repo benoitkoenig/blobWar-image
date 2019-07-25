@@ -43,14 +43,15 @@ def train():
         feature_areas = roi_pooling(features, boxes)
         regression_values = regr(feature_areas)
         regr_boxes = [get_final_box(boxes[i], regression_values[i].numpy()) for i in range(len(boxes)) if probs[i] > .9]
-        regr_feature_areas = roi_pooling(features, regr_boxes)
-        box_true_masks = get_box_true_mask(regr_boxes, true_mask)
+        if len(regr_boxes) > 0:
+            regr_feature_areas = roi_pooling(features, regr_boxes)
+            box_true_masks = get_box_true_mask(regr_boxes, true_mask)
 
-        def get_loss():
-            predicted_masks = segmentation(regr_feature_areas)
-            return get_segmentation_loss(predicted_masks, box_true_masks)
+            def get_loss():
+                predicted_masks = segmentation(regr_feature_areas)
+                return get_segmentation_loss(predicted_masks, box_true_masks)
 
-        opt.minimize(get_loss, [segmentation.trainable_weights])
+            opt.minimize(get_loss, [segmentation.trainable_weights])
 
         data_index += 1
         if (data_index % 100 == 99):

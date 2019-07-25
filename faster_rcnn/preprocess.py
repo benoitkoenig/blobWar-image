@@ -10,6 +10,7 @@ statuses = {
 }
 
 s = 6
+y_offset = 3 # The blob picture is not centered vertically around it's position
 
 def get_localization_data(picture_data):
     target = np.zeros((feature_size, feature_size), dtype=np.int)
@@ -23,12 +24,12 @@ def get_localization_data(picture_data):
         label = 1 + statuses[blob["status"]]
         if (blob_id >= 3):
             label += 3
-        for a in np.arange(y - s - 1, y + s - 1):
+        for a in np.arange(y - s - y_offset, y + s - y_offset):
             for b in np.arange(x - s, x + s):
                 if (a >= 0) & (a < feature_size) & (b >= 0) & (b < feature_size):
                     target[a][b] = label
                     bounding_box_target[a][b][0] = x
-                    bounding_box_target[a][b][1] = y
+                    bounding_box_target[a][b][1] = y - y_offset
                     bounding_box_target[a][b][2] = 2 * s
                     bounding_box_target[a][b][3] = 2 * s
     return target, bounding_box_target
