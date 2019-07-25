@@ -1,4 +1,6 @@
 image_size = 256
+real_image_width = 742
+real_image_height = 594
 feature_size = 128
 num_anchors = 1
 overlap_thresh = .2

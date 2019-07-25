@@ -22,7 +22,7 @@ def get_localization_data(picture_data):
         label = 1 + statuses[blob["status"]]
         if (blob_id >= 3):
             label += 3
-        for a in np.arange(y - s, y + s):
+        for a in np.arange(y - s - 1, y + s - 1):
             for b in np.arange(x - s, x + s):
                 if (a >= 0) & (a < feature_size) & (b >= 0) & (b < feature_size):
                     target[a][b] = label
