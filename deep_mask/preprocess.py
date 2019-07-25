@@ -8,7 +8,7 @@ def get_true_mask(data):
     all_masks = []
     for blob in all_blobs:
         if (blob["alive"]):
-            mask = np.zeros((image_height, image_width, 1), dtype=np.int)
+            mask = np.zeros((image_height, image_width, 1), dtype=np.int) - 1
             if (abs(blob["x"] - .5) < .4) & (abs(blob["y"] - .5) < .4):
                 y_k = 1
             else:
@@ -22,6 +22,7 @@ def get_true_mask(data):
                     y = i + y_init
                     x = j + x_init
                     if (x >= 0) & (y >= 0) & (y < image_height) & (x < image_width):
-                        mask[y][x][0] = blob_mask[i][j]
+                        if (blob_mask[i][j] == 1):
+                            mask[y][x][0] = 1
             all_masks.append((mask, y_k))
     return all_masks

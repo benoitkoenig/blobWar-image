@@ -14,4 +14,4 @@ def calculate_loss(segment, score, true_masks):
     (true_mask, y_k) = true_masks[0]
     segment_loss = calculate_segment_loss(segment, true_mask)
     score_loss = calculate_score_loss(score, y_k)
-    return (1 + y_k) * (segment_loss + score_loss)
+    return (1 + y_k) * segment_loss + score_loss
