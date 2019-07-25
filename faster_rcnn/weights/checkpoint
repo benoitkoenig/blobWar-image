@@ -1,2 +1,2 @@
-model_checkpoint_path: "regr"
-all_model_checkpoint_paths: "regr"
+model_checkpoint_path: "segmentation"
+all_model_checkpoint_paths: "segmentation"

@@ -1,6 +1,7 @@
 import numpy as np
 
-from constants import feature_size, anchor_size
+from blob_mask import blob_mask, blob_mask_dim
+from constants import feature_size, anchor_size, real_image_width, real_image_height
 
 statuses = {
     "normal": 0,
@@ -31,3 +32,20 @@ def get_localization_data(picture_data):
                     bounding_box_target[a][b][2] = 2 * s
                     bounding_box_target[a][b][3] = 2 * s
     return target, bounding_box_target
+
+def get_true_mask(data):
+    all_blobs = data["army"] + data["enemy"]
+    mask = np.zeros((real_image_height, real_image_width), dtype=np.int)
+    for (blob_id, blob) in enumerate(all_blobs):
+        if (blob["alive"]):
+            x_init = int(blob["x"] * 742) - 26
+            y_init = int(blob["y"] * 594) - 31
+
+            for i in range(blob_mask_dim[0]):
+                for j in range(blob_mask_dim[1]):
+                    y = i + y_init
+                    x = j + x_init
+                    if (x >= 0) & (y >= 0) & (y < real_image_height) & (x < real_image_width):
+                        if (blob_mask[i][j] == 1):
+                            mask[y][x] = blob_id + 1
+    return mask

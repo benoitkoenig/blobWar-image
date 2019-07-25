@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from constants import overlap_thresh, max_boxes, anchor_size as s, feature_size
+from constants import overlap_thresh, max_boxes, anchor_size as s, feature_size, real_image_height, real_image_width
 
 def non_max_suppression_fast(boxes, probs):
 	x1 = boxes[:, 0]
@@ -131,3 +131,17 @@ def get_boxes_precision(boxes, regression_values, target):
 		non_zero_area = len(t)
 		precision.append([non_zero_area, total_area])
 	return precision
+
+def get_box_true_mask(boxes, whole_mask):
+	masks = []
+	for b in boxes:
+		x1 = b[0] * real_image_width // feature_size
+		y1 = b[1] * real_image_height // feature_size
+		x2 = b[2] * real_image_width // feature_size
+		y2 = b[3] * real_image_height // feature_size
+		mask = whole_mask[y1:y2, x1:x2]
+		center_value = whole_mask[(y1 + y2) // 2, (x1 + x2) // 2]
+		mask = np.array(mask == center_value, dtype=np.int)
+		mask = (2 * mask) - 1
+		masks.append(mask)
+	return masks

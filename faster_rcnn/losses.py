@@ -58,3 +58,17 @@ def get_regression_loss(values, boxes, bounding_box_target, probs_boxes):
     loss = tf.multiply(probs_boxes_formated, loss) # First focus on localization - then regression
     loss = tf.reduce_mean(loss)
     return loss
+
+def get_segmentation_loss(predicted_masks, box_true_masks):
+    loss = []
+    for i in range(len(predicted_masks)):
+        true_mask = box_true_masks[i]
+        true_mask = np.reshape(true_mask, [true_mask.shape[0], true_mask.shape[1], 1])
+
+        predicted_mask = predicted_masks[i]
+        predicted_mask = tf.image.resize(predicted_mask, [true_mask.shape[0], true_mask.shape[1]])
+
+        pixel_product = tf.multiply(true_mask, predicted_mask)
+        pixel_value = tf.math.log(1 + tf.math.exp(-pixel_product))
+        loss.append(tf.reduce_mean(pixel_value))
+    return tf.reduce_mean(loss)

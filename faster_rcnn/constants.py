@@ -7,3 +7,4 @@ overlap_thresh = .2
 max_boxes = 12
 nb_class = 7
 anchor_size = 16
+mask_anchor_size = 32

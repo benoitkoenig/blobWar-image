@@ -9,9 +9,9 @@ import sys
 tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
 from boxes import get_boxes, get_final_box
-from constants import feature_size, real_image_height, real_image_width
+from constants import feature_size, real_image_height, real_image_width, max_boxes
 from img import get_img
-from prediction import get_prediction
+from prediction import get_prediction, get_prediction_mask
 
 labels_colors = [
     "#000000",
@@ -33,32 +33,41 @@ labels_name = [
     "Ennemy ghost",
 ]
 
-def show(id, img_path, boxes):
-    fig = plt.figure(figsize=(6, 6))
-    fig.canvas.set_window_title("Faster-RCNN: review image {}".format(id))
-    ax = fig.add_axes([0,0,1,1])
-    image = plt.imread(img_path)
-    plt.imshow(image)
+def show(id, img_path, boxes, mask):
+    fig = plt.figure(figsize=(20, 10))
+    fig.canvas.set_window_title("Faster-RCNN and Mask-RCNN: review image {}".format(id))
 
+    plt.subplot(1, 2, 1)
+    image = plt.imread(img_path)
+    ax = plt.gca()
     for b in boxes:
         edgecolor = labels_colors[b["label"]]
         ax.annotate(labels_name[b["label"]], xy=(b["x1"], b["y2"] + 20))
         rect = patches.Rectangle((b["x1"],b["y1"]), b["x2"] - b["x1"], b["y2"] - b["y1"], edgecolor=edgecolor, facecolor='none')
         ax.add_patch(rect)
+    plt.imshow(image)
+
+    plt.subplot(1, 2, 2)
+    image = plt.imread(img_path)
+    for i in range(max_boxes):
+        specific_mask = np.array(mask != i + 1, dtype=np.int)
+        image[:, :, i % 3] = image[:, :, i % 3] * specific_mask
+        image[:, :, (i+1) % 3] = image[:, :, (i+1) % 3] * specific_mask
+    plt.imshow(image)
 
     plt.show()
 
-def show_prediction(data_index):
+def show_mask(data_index):
     img_path = "../pictures/pictures_detect_local_evaluate_100/{}.png".format(data_index)
     img = get_img(img_path)
-    boxes, probs, classification_logits, regression_values = get_prediction(img)
 
-    final_boxes = []
+    boxes, probs, classification_logits, regression_values = get_prediction(img)
+    bounding_boxes = []
     for i in range(len(boxes)):
         if probs[i] > .9:
             x1, y1, x2, y2 = get_final_box(boxes[i], regression_values[i], limit_border=False)
             label = np.argmax(classification_logits[i])
-            final_boxes.append({
+            bounding_boxes.append({
                 "x1": x1 * real_image_width // feature_size,
                 "y1": y1 * real_image_height // feature_size,
                 "x2": x2 * real_image_width // feature_size,
@@ -66,7 +75,9 @@ def show_prediction(data_index):
                 "label": label,
             })
 
-    show(data_index, img_path, final_boxes)
+    mask = get_prediction_mask(img)
+
+    show(data_index, img_path, bounding_boxes, mask)
 
 index = None
 if len(sys.argv) > 1:
@@ -74,6 +85,6 @@ if len(sys.argv) > 1:
         index = eval(sys.argv[1])
 
 if (index == None):
-    print("Usage: python show_prediction.py [0-99]")
+    print("Usage: python show_mask.py [0-99]")
 else:
-    show_prediction(str(index))
+    show_mask(str(index))
