@@ -6,14 +6,14 @@ from tensorflow.keras.optimizers import Adam
 tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
 from boxes import get_boxes, get_boxes_precision, get_labels_boxes
-from classifier import Classifier
-from feature_mapper import FeatureMapper
 from img import get_img
 from losses import get_localization_loss, get_classification_loss, get_regression_loss
+from models.classifier import Classifier
+from models.feature_mapper import FeatureMapper
+from models.regr import Regr
+from models.roi_pooling import RoiPooling
+from models.rpn import Rpn
 from preprocess import get_localization_data
-from regr import Regr
-from roi_pooling import RoiPooling
-from rpn import Rpn
 from tracking import save_data
 
 def train():

@@ -1,9 +1,9 @@
 from boxes import get_boxes
-from classifier import Classifier
-from feature_mapper import FeatureMapper
-from regr import Regr
-from roi_pooling import RoiPooling
-from rpn import Rpn
+from models.classifier import Classifier
+from models.feature_mapper import FeatureMapper
+from models.regr import Regr
+from models.roi_pooling import RoiPooling
+from models.rpn import Rpn
 
 feature_mapper = FeatureMapper()
 rpn = Rpn()

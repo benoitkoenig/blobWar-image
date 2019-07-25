@@ -3,11 +3,11 @@ import tensorflow as tf
 
 tf.compat.v1.enable_eager_execution() # Remove when switching to tf2
 
-from classifier import Classifier
 from constants import image_size, feature_size, anchor_size
-from feature_mapper import FeatureMapper
-from regr import Regr
-from rpn import Rpn
+from models.classifier import Classifier
+from models.feature_mapper import FeatureMapper
+from models.regr import Regr
+from models.rpn import Rpn
 
 def reset_models():
     feature_mapper = FeatureMapper()
